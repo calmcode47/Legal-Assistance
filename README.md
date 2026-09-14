@@ -67,17 +67,51 @@ flowchart TD
 
 ---
 
-## 3. Code Quality & Maintainability (High Impact)
+## 3. Decoupled Repository Structure & Code Quality (High Impact)
 
-JurisAccess is built on **Clean Architecture** and strict TypeScript standards:
+The project is cleanly decoupled into standalone `backend/` and `frontend/` folders:
+
+```
+Legal-Assistance/
+├── backend/                       # Node.js 20 / TypeScript REST API (Render Web Service)
+│   ├── src/
+│   │   ├── agents/                # Triage, Explainer, Critic, Matcher, LoopEngine
+│   │   ├── guardrails/            # PII Scrubber, Injection Guard, UPL Guard, Citation Validator
+│   │   ├── controllers/           # HTTP transport controllers
+│   │   ├── prompts/               # Dense, structured few-shot system prompts
+│   │   ├── services/              # LLM service (Gemini/Mock), Legal Aid directory, Cache
+│   │   ├── routes/                # Express API routes
+│   │   └── server.ts              # Express application listening on dynamic PORT
+│   ├── tests/                     # 21 automated Vitest tests (100% passing)
+│   ├── package.json               # Pure backend dependencies
+│   ├── tsconfig.json              # Strict TypeScript configuration
+│   └── README.md                  # Dedicated backend architecture guide
+│
+├── frontend/                      # Static Edge Application (Cloudflare Pages)
+│   ├── index.html / triage.html   # Emergency Legal Triage & Issue Intake
+│   ├── analyze.html               # Document Demystifier & Clause Scanner
+│   ├── rights.html                # Tenant & Worker Rights Navigator
+│   ├── aid.html                   # Free Legal Aid & Clinic Locator
+│   ├── action.html                # Pro Se Demand Letter Builder
+│   ├── app.js                     # Unified Client API connector
+│   ├── _headers                   # Cloudflare edge security headers
+│   ├── _redirects                 # SPA client routing
+│   ├── wrangler.toml              # Cloudflare Pages configuration
+│   ├── website_design/            # Stitch design system (DESIGN.md) and screen mockups
+│   └── README.md                  # Dedicated frontend guide
+│
+├── render.yaml                    # Render Web Service Blueprint (rootDir: backend)
+├── package.json                   # Root workspace runner scripts (npm test, npm run build)
+├── prd.md                         # Product Requirements Document
+├── memory.md                      # System Memory & Canonical Registry
+├── architecture.md               # Loop Engineering Architecture
+├── rules.md                       # Engineering & Ethics Rulebook
+└── phases.md                      # Phased Implementation Roadmap
+```
+
+### Code Standards
 - **Zero `any` Policy:** Strict TypeScript (`noImplicitAny`, `strictNullChecks`, `noUnusedLocals`).
-- **Comprehensive Zod Validation:** All incoming HTTP requests and internal LLM JSON responses are validated at runtime via Zod schemas (`src/types/api.ts`).
-- **Modular Layer Separation:**
-  - `src/controllers/`: Pure HTTP transport controllers.
-  - `src/agents/`: Dedicated cognitive agents (`triageAgent`, `explainerAgent`, `criticAgent`, `matcherAgent`, `loopEngine`).
-  - `src/guardrails/`: Pure, deterministic safety filters (`piiScrubber`, `injectionGuard`, `uplGuard`, `citationValidator`).
-  - `src/services/`: Reusable domain services (`llmService`, `legalAidService`, `cacheService`).
-  - `src/routes/`: Declarative route mappings with validation middleware.
+- **Comprehensive Zod Validation:** All incoming HTTP requests and internal LLM JSON responses are validated at runtime via Zod schemas (`backend/src/types/api.ts`).
 - **Centralized Error Discipline:** Standardized JSON error envelopes preventing stack trace leakage.
 
 ---

@@ -1,7 +1,7 @@
 # Cloudflare Pages / Workers Configuration
 name = "jurisaccess-frontend"
 compatibility_date = "2026-09-01"
-pages_build_output_dir = "public"
+pages_build_output_dir = "."
 
 [vars]
 ENVIRONMENT = "production"

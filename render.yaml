@@ -4,6 +4,7 @@ services:
   - type: web
     name: jurisaccess-backend
     runtime: node
+    rootDir: backend
     plan: free
     region: oregon
     branch: main
