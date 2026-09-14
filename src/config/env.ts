@@ -12,7 +12,6 @@ const EnvSchema = z.object({
   PORT: z.string().transform((val) => parseInt(val, 10)).default('8080'),
   GEMINI_API_KEY: z.string().optional(),
   LLM_PROVIDER: z.enum(['gemini', 'mock']).default('mock'),
-  FIREBASE_PROJECT_ID: z.string().default('jurisaccess-ai'),
   RATE_LIMIT_WINDOW_MS: z.string().transform((val) => parseInt(val, 10)).default('60000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform((val) => parseInt(val, 10)).default('60'),
   CORS_ORIGIN: z.string().default('*'),

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JurisAccess AI (LexisLoop) — Civil Legal Assistance & Access to Justice</title>
+  <meta name="description" content="AI-powered legal assistance and access to justice platform featuring closed-loop self-correction, PII redaction, and pro se tools for low-income citizens.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0B0F19;
+      --bg-surface: #1E293B;
+      --bg-surface-elevated: #334155;
+      --text-primary: #F8FAFC;
+      --text-muted: #94A3B8;
+      --accent-primary: #6366F1;
+      --accent-secondary: #38BDF8;
+      --risk-critical: #EF4444;
+      --risk-warning: #F59E0B;
+      --risk-safe: #10B981;
+      --border-subtle: #334155;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background-color: #111827;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.75rem 1.5rem;
+    }
+
+    .emergency-banner {
+      background-color: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #FCA5A5;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .emergency-banner a {
+      color: #FEF08A;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .logo {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo span {
+      background: linear-gradient(135deg, #6366F1, #38BDF8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--text-primary);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      width: 100%;
+      flex: 1;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+      line-height: 1.2;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 1.125rem;
+      max-width: 700px;
+      margin: 0 auto 1.5rem auto;
+    }
+
+    .badges-row {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .badge.green { color: #34D399; border-color: rgba(52, 211, 153, 0.3); }
+    .badge.indigo { color: #A5B4FC; border-color: rgba(165, 180, 252, 0.3); }
+
+    .card {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background-color: #0F172A;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366F1, #4F46E5);
+      color: #FFFFFF;
+      border: none;
+      padding: 0.85rem 1.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: opacity 0.2s, transform 0.1s;
+      width: 100%;
+    }
+
+    .btn-primary:hover { opacity: 0.95; }
+    .btn-primary:active { transform: scale(0.99); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .result-container {
+      display: none;
+      margin-top: 2rem;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 1.5rem;
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .score-badge {
+      background-color: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      color: #34D399;
+      font-weight: 700;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+    }
+
+    .pill-urgent {
+      background-color: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #F87171;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+
+    .checklist-box {
+      background-color: #0F172A;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+
+    .checklist-box ul {
+      margin-left: 1.25rem;
+      color: var(--text-muted);
+    }
+
+    .checklist-box li {
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background-color: #0B0F19;
+    }
+
+    footer p { margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="emergency-banner" role="alert">
+      <span>🚨 <strong>Immediate Court Hearing or Illegal Lockout?</strong> Call <strong>2-1-1</strong> or National Domestic Violence Hotline (1-800-799-7233).</span>
+      <a href="https://www.lawhelp.org" target="_blank" rel="noopener">Find Free Legal Clinic →</a>
+    </div>
+    <div class="nav-container">
+      <div class="logo">
+        ⚖️ <span>JurisAccess AI</span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#triage" class="active">Legal Triage</a></li>
+        <li><a href="#demystify">Document Scanner</a></li>
+        <li><a href="#aid">Legal Aid</a></li>
+        <li><a href="#pro-se">Demand Letters</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Accessible Legal Intelligence & Protection</h1>
+      <p>Demystify eviction notices, predatory contracts, and wage disputes in plain 6th-grade English with verified Loop Engineering self-correction.</p>
+      <div class="badges-row">
+        <div class="badge green">🔒 100% PII Redacted Before Inference</div>
+        <div class="badge indigo">🔄 Closed-Loop Critic Verified (>= 95%)</div>
+        <div class="badge green">⚖️ ABA Model Rule 5.5 Ethics Compliant</div>
+      </div>
+    </section>
+
+    <section class="card" id="triage">
+      <h2 style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1.5rem; margin-bottom: 1rem;">1. Instant Legal Problem Triage</h2>
+      <p style="color: var(--text-muted); margin-bottom: 1.5rem; font-size: 0.95rem;">Describe your civil legal problem, eviction notice, or unpaid wage issue. Our AI anonymizes your personal information before analyzing statutory deadlines.</p>
+
+      <form id="triage-form">
+        <div class="form-group">
+          <label for="user-query">Describe What Happened</label>
+          <textarea id="user-query" rows="4" placeholder="Example: My landlord served me a 3-day notice to pay rent or quit today and threatened to change the locks tomorrow..." required></textarea>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="state">State (2-Letter Code)</label>
+            <input type="text" id="state" placeholder="e.g. CA, NY, TX" maxlength="2" value="CA">
+          </div>
+          <div class="form-group">
+            <label for="zip-code">ZIP Code (5-Digit)</label>
+            <input type="text" id="zip-code" placeholder="e.g. 90012" maxlength="5" value="90012">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="triage-btn">
+          <span>⚡ Run Cognitive Triage & Urgency Analysis</span>
+        </button>
+      </form>
+
+      <div class="result-container" id="triage-result">
+        <div class="result-header">
+          <h3 id="result-domain" style="font-size: 1.25rem;">Detected Matter</h3>
+          <span class="pill-urgent" id="result-urgency">CRITICAL</span>
+        </div>
+        <p id="result-reasoning" style="margin-bottom: 1rem;"></p>
+        <div class="checklist-box" id="result-alert-box">
+          <strong>⚠️ Statutory Deadline Alert:</strong>
+          <p id="result-alert" style="margin-top: 0.35rem; color: #F8FAFC;"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p><strong>Notice:</strong> JurisAccess AI (LexisLoop) is an educational tool designed for self-represented litigants. It provides legal information and document demystification, not individualized legal counsel or formal court representation, and does not establish an attorney-client relationship.</p>
+    <p>Frontend deployed on <strong>Cloudflare Pages</strong> • Backend powered by <strong>Render Web Service</strong> • PromptWars Exclusive Edition</p>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

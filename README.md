@@ -3,7 +3,8 @@
 
 [![CI Test Suite](https://img.shields.io/badge/Tests-21%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7%20Strict-3178C6.svg)](https://www.typescriptlang.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-Functions%20%26%20Firestore-FFCA28.svg)](https://firebase.google.com/)
+[![Backend](https://img.shields.io/badge/Backend-Render%20Web%20Service-46E3B7.svg)](https://render.com/)
+[![Frontend](https://img.shields.io/badge/Frontend-Cloudflare%20Pages-F38020.svg)](https://pages.cloudflare.com/)
 [![Security Guardrails](https://img.shields.io/badge/PII%20Protection-Zero--Trace%20Tokenized-6366F1.svg)](#4-security--responsible-ai-high-impact)
 [![WCAG](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AAA-059669.svg)](#7-accessibility--usability)
 [![Repo Size](https://img.shields.io/badge/Repo%20Size-%3C%201%20MB%20(Limit%2010MB)-blue.svg)](#repository-hygiene)
@@ -15,6 +16,7 @@
 - **Competition:** PromptWars — Exclusive Edition (Hack2Skill)
 - **Problem Statement:** AI for Legal Assistance and Access
 - **Chosen Vertical:** **Civil Legal Assistance & Access to Justice (A2J)**
+- **Deployment Architecture:** **Cloudflare Pages** (Frontend Edge CDN) + **Render Web Service** (Backend Node.js API)
 - **Target Users:** Self-represented litigants (pro se), low-and-middle-income tenants, gig workers, debt-harassed consumers, and legal aid intake coordinators.
 
 ### The Problem
@@ -252,7 +254,7 @@ Content-Type: application/json
 
 ---
 
-## 11. Quick Start & Deployment
+## 11. Quick Start & Cloud Deployment
 
 ### Local Development
 ```bash
@@ -263,22 +265,34 @@ cd Legal-Assistance
 # 2. Install dependencies
 npm install
 
-# 3. Run automated tests (100% deterministic)
+# 3. Run automated tests (100% deterministic, 21/21 passing)
 npm test
 
 # 4. Start local development server
 npm run dev
-# Server runs at http://localhost:8080
+# Backend runs at http://localhost:8080
 ```
 
-### Firebase Deployment
-```bash
-# 1. Login to Firebase CLI
-npx firebase-tools login
+### Backend Deployment: Render Web Service
+1. **Push to GitHub**: Ensure all commits are pushed to `main`.
+2. **One-Click Blueprint on Render**:
+   - Go to [dashboard.render.com](https://dashboard.render.com).
+   - Click **New** -> **Blueprint**.
+   - Connect your GitHub repository: `calmcode47/Legal-Assistance`.
+   - Render automatically parses `render.yaml` and provisions a Node.js web service with:
+     - **Build Command:** `npm install && npm run build`
+     - **Start Command:** `npm start`
+     - **Health Check Path:** `/api/health`
+   - In the Render dashboard, set your optional `GEMINI_API_KEY` under Environment Variables.
+   - Your API is live at `https://<your-app-name>.onrender.com`.
 
-# 2. Deploy Cloud Functions and Firestore Security Rules
-npx firebase-tools deploy --only functions,firestore
-
-# 3. Deploy Frontend Hosting (after Stitch generation in public/)
-npx firebase-tools deploy --only hosting
-```
+### Frontend Deployment: Cloudflare Pages
+1. **Via Cloudflare Dashboard**:
+   - Go to the [Cloudflare Dashboard](https://dash.cloudflare.com) -> **Workers & Pages** -> **Create application** -> **Pages**.
+   - Connect repository `calmcode47/Legal-Assistance`.
+   - Build output directory: `public`.
+   - Click **Save and Deploy**. Cloudflare serves your frontend globally with edge caching and automatic SSL.
+2. **Via Wrangler CLI**:
+   ```bash
+   npx wrangler pages deploy public --project-name=jurisaccess-frontend
+   ```

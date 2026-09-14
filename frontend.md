@@ -203,15 +203,28 @@ At the top of the preview, provide action buttons: 'Download Formatted PDF', 'Co
 
 ---
 
-## 5. Firebase Hosting Deployment
+## 5. Cloudflare Pages Deployment
 
-To deploy the frontend to Firebase Hosting alongside the backend:
+Deploy your frontend to Cloudflare Pages for instant global edge delivery:
+
+### Option A: Cloudflare Git Integration (Automatic)
+1. Push your repository to GitHub (`git push origin main`).
+2. Open the **Cloudflare Dashboard** -> **Workers & Pages** -> **Create application** -> **Pages**.
+3. Select `calmcode47/Legal-Assistance`.
+4. Set Build Settings:
+   - **Framework preset:** `None`
+   - **Build command:** `None` (or your Stitch build script)
+   - **Build output directory:** `public`
+5. Click **Save and Deploy**. Cloudflare automatically configures global CDN caching, SSL, and applies the edge security headers defined in `public/_headers`.
+
+### Option B: Cloudflare Wrangler CLI (Direct Deploy)
 ```bash
-# 1. Initialize Firebase Hosting in workspace
-npx firebase-tools init hosting
+# Install or run Wrangler directly
+npx wrangler pages deploy public --project-name=jurisaccess-frontend
+```
 
-# 2. Build or export your Stitch HTML/JS screens into the public/ directory
-
-# 3. Deploy both frontend and backend to Firebase
-npx firebase-tools deploy --only hosting
+### Pointing to the Render Backend
+In `public/app.js` or via environment variable in Cloudflare Pages dashboard:
+```javascript
+window.RENDER_BACKEND_URL = "https://your-backend-app.onrender.com/api";
 ```

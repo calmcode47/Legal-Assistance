@@ -170,31 +170,40 @@ sequenceDiagram
 
 ---
 
-## 4. Firebase Architecture & Deployment Topology
+## 4. Cloudflare Pages & Render Deployment Topology
 
 ```
 +-------------------------------------------------------------------+
-|                        Firebase Project                           |
+|               Cloudflare Global Edge Network                      |
 |                                                                   |
-|   +---------------------+         +---------------------------+   |
-|   |   Firebase Hosting  |         |   Cloud Functions (2nd)   |   |
-|   | (Static Web/Stitch) | ------> |   Node.js 20 Express App  |   |
-|   |   - HTML/CSS/JS     |         |   - /api/triage           |   |
-|   |   - WCAG AAA UI     |         |   - /api/analyze-contract |   |
-|   +---------------------+         |   - /api/match-aid        |   |
-|                                   |   - /api/pro-se-letter    |   |
-|                                   +---------------------------+   |
-|                                                 │                 |
-|                                                 ▼                 |
-|                                   +---------------------------+   |
-|                                   |   Cloud Firestore (NoSQL) |   |
-|                                   |   - /legalAidDirectory    |   |
-|                                   |   - /statutoryBenchmarks  |   |
-|                                   |   - /auditLogs (anonym)   |   |
-|                                   |   (Hardened firestore.rules)  |
-|                                   +---------------------------+   |
+|   +-----------------------------------------------------------+   |
+|   |   Cloudflare Pages (Frontend / Stitch Generated UI)       |   |
+|   |   - Global CDN Caching & Edge Security Headers (_headers) |   |
+|   |   - Single Page Application Client Routing (_redirects)   |   |
+|   |   - WCAG 2.1 AAA High-Contrast Accessible Interface       |   |
+|   +-----------------------------------------------------------+   |
++-------------------------------------------------------------------+
+                                │
+                                │ HTTPS REST API Calls (/api/*)
+                                ▼
++-------------------------------------------------------------------+
+|               Render Cloud Platform (US-West / Oregon)            |
+|                                                                   |
+|   +-----------------------------------------------------------+   |
+|   |   Render Web Service (Node.js 20 LTS Express App)         |   |
+|   |   - /api/triage           - /api/analyze-contract         |   |
+|   |   - /api/match-aid        - /api/pro-se-letter            |   |
+|   |   - /api/loop-execute     - /api/health                   |   |
+|   |   - Automated Health Checks & Auto-Deploy from GitHub     |   |
+|   |   - Zero-Trust Input Fencing & Ephemeral PII Tokenizer    |   |
+|   +-----------------------------------------------------------+   |
 +-------------------------------------------------------------------+
 ```
+
+### Render Web Service Blueprint (`render.yaml`)
+- Configured via declarative Infrastructure-as-Code (`render.yaml`).
+- Auto-deploys upon push to `main` branch.
+- Automated zero-downtime health check polling at `/api/health`.
 
 ---
 

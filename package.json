@@ -21,7 +21,8 @@
     "promptwars",
     "pii-redaction",
     "upl-guardrail",
-    "firebase-functions"
+    "render-web-service",
+    "cloudflare-pages"
   ],
   "author": "JurisAccess Team",
   "license": "Apache-2.0",
@@ -30,8 +31,6 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "firebase-admin": "^13.1.0",
-    "firebase-functions": "^6.3.1",
     "helmet": "^8.0.0",
     "zod": "^3.24.2"
   },

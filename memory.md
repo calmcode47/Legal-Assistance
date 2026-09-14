@@ -41,11 +41,12 @@ JurisAccess AI provides accessible, hallucination-resistant, and privacy-preserv
 
 | ID | Statement | Rationale | Status |
 | :--- | :--- | :--- | :--- |
-| `DEC-001` | Implement backend in TypeScript on Node 20 with Firebase Functions/Express. | Ensures type safety, robust async handling, seamless Firebase deployment, and high maintainability. | `APPROVED` |
+| `DEC-001` | Implement backend in TypeScript on Node 20 with Express. | Ensures type safety, robust async handling, and high maintainability. | `APPROVED` |
 | `DEC-002` | Use multi-loop cognitive architecture (Generator -> Critic -> Refiner). | Elevates accuracy and safety beyond single-shot prompting; directly satisfies the promptwars "loop engineering" mandate. | `APPROVED` |
 | `DEC-003` | Implement dual-mode LLM Service (Gemini API + deterministic mock fallback). | Enables standalone CI execution, automated testing without external API keys, and seamless live cloud inference. | `APPROVED` |
 | `DEC-004` | Strictly decouple frontend specification (`frontend.md`) for Stitch MCP integration. | Enables the user to generate clean, modular UI screens inside their IDE using Stitch while keeping backend pure and lean. | `APPROVED` |
 | `DEC-005` | Enforce repository size `< 2 MB` through comprehensive `.gitignore`. | Outperforms the PromptWars 10 MB limit by 5x; guarantees zero failed submissions due to bloat. | `APPROVED` |
+| `DEC-006` | Deploy Frontend to Cloudflare Pages and Backend to Render Web Service. | Replaces Firebase to leverage Cloudflare edge CDN performance and Render's zero-config Node.js web service scaling. | `APPROVED` |
 
 ### Non-Goals (`NON-###`)
 
