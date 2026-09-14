@@ -1,35 +1,33 @@
 # Frontend Architecture & Stitch MCP Specifications: JurisAccess AI
 
-**Document Version:** 1.0.0  
-**Design System:** LexisGuard UI (Civil Justice Dark/Light High-Contrast)  
+**Document Version:** 2.0.0  
+**Design System:** JurisAccess Intelligence (Editorial Judicial Light Mode - `website_design/jurisaccess_intelligence/DESIGN.md`)  
 **Accessibility Target:** WCAG 2.1 AAA Compliant  
-**Integration Target:** Stitch MCP Server & Firebase Hosting  
+**Integration Target:** Stitch MCP Server & Cloudflare Pages  
 
 ---
 
-## 1. Design System & Visual Tokens
+## 1. Design System & Visual Tokens (from `website_design/`)
 
-To ensure maximum accessibility, trust, and clarity for distressed citizens facing legal crises, JurisAccess uses a calm, authoritative, high-contrast palette with clear visual risk signifiers.
+Following an exhaustive analysis of the `website_design` folder, the frontend is built upon the **JurisAccess Intelligence** design specification:
+- **Aesthetic:** Elevated sharp-edged editorial minimalism (absolute 0px border radius / sharp corners across all surfaces, inputs, buttons, and tables).
+- **Typography:**
+  - **Headlines & Titles:** `Newsreader` (Editorial serif projecting solemnity, legal tradition, and supreme judicial authority).
+  - **Body & Forms:** `Public Sans` (Civic institutional sans-serif with tabular lining figures for dense evidentiary clarity).
+- **Icons:** Google `Material Symbols Outlined`.
 
 ### Color Palette Tokens
 | Token Name | Hex Code | Purpose & Contrast Ratio |
 | :--- | :--- | :--- |
-| `--bg-primary` | `#0B0F19` | Deep Obsidian Canvas (Dark Mode Primary) |
-| `--bg-surface` | `#1E293B` | Elevated Cards & Input Containers |
-| `--bg-surface-elevated` | `#334155` | Modal Dialogs, Floating Toolbars |
-| `--text-primary` | `#F8FAFC` | High-Contrast Headings & Body Text (Contrast 14.8:1) |
-| `--text-muted` | `#94A3B8` | Subtitles, Secondary Metadata, Helper Labels |
-| `--accent-primary` | `#6366F1` | Electric Indigo (Primary CTAs, Active States) |
-| `--accent-secondary` | `#38BDF8` | Cyan Glow (Informational Badges, Safe Highlights) |
-| `--risk-critical` | `#EF4444` | Red Alert (Eviction notice, court date < 72 hrs) |
-| `--risk-warning` | `#F59E0B` | Amber Caution (Predatory clause, statutory deadline) |
-| `--risk-safe` | `#10B981` | Emerald Green (Enforceable tenant/worker right) |
-| `--border-subtle` | `#334155` | 1px border dividers |
-
-### Typography Tokens (Google Fonts: Inter + Plus Jakarta Sans)
-- **Display Heading:** `Plus Jakarta Sans`, 700 Weight (Bold), tracking `-0.02em`.
-- **Body & Legal Copy:** `Inter`, 400 & 500 Weight, line-height `1.65` for optimal readability.
-- **Monospace Code/Notice:** `JetBrains Mono`, 500 Weight (Statutory citations, clause numbers).
+| `primary` | `#070235` / `#1E1B4B` | Midnight Indigo (Primary structural framing, authority badges) |
+| `secondary` | `#4E45D5` / `#4338CA` | Deep Judicial Blue (Interactive buttons, active tab highlights) |
+| `tertiary` | `#000C19` | Procedural Dark Ink |
+| `background` | `#FAF8FF` / `#F8FAFC` | Crisp Institutional Canvas |
+| `surface-container-lowest` | `#FFFFFF` | Analytical Cards & Evidentiary Sheets |
+| `surface-container-low` | `#F2F3FF` | Secondary Form Wells & Code Blocks |
+| `outline-variant` | `#C8C5D0` / `#E2E8F0` | Razor-thin 1px structural keylines |
+| `error` / Critical | `#DC2626` over `#FEF2F2` | Critical Threat Gauge & Imminent Eviction Notices |
+| `verified` / Safe | `#16A34A` over `#F0FDF4` | Validated Statutory Protections & Zero-Trace Badge |
 
 ---
 
