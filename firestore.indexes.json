@@ -1,0 +1,21 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "legalAidDirectory",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "state", "order": "ASCENDING" },
+        { "fieldPath": "zipCode", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "statutoryBenchmarks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "jurisdiction", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
