@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "JurisAccess AI (LexisLoop) - AI for Legal Assistance and Access to Justice",
   "scripts": {
-    "build": "npm run build --prefix backend",
+    "build": "npm run build --prefix backend && npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
     "start": "npm run start --prefix backend",
     "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npx serve frontend",
+    "dev:frontend": "npm run dev --prefix frontend",
     "test": "npm test --prefix backend",
     "test:coverage": "npm run test:coverage --prefix backend"
   },

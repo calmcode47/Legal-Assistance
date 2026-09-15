@@ -14,20 +14,21 @@ import { errorHandler } from './middleware/errorHandler';
 
 export const app = express();
 
-// Path to frontend assets
-const frontendPath = path.resolve(__dirname, '../../frontend');
-const hasFrontend = fs.existsSync(frontendPath);
+// Path to frontend assets (Vite React dist bundle with fallback)
+const distPath = path.resolve(__dirname, '../../frontend/dist');
+const rawFrontendPath = path.resolve(__dirname, '../../frontend');
+const frontendPath = fs.existsSync(distPath) ? distPath : (fs.existsSync(rawFrontendPath) ? rawFrontendPath : null);
 
-// Security Middleware (Configured to support Stitch Tailwind CDN & Google Fonts)
+// Security Middleware (Configured to support Google Fonts & Vite assets)
 app.use(
   helmet({
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.tailwindcss.com'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:', 'https:'],
-        scriptSrc: ["'self'", "'unsafe-inline'", 'https://cdn.tailwindcss.com'],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
         connectSrc: ["'self'", 'http://localhost:*', 'https://*.onrender.com'],
       },
     },
@@ -49,27 +50,15 @@ app.use(rateLimiter);
 // 1. API Routes
 app.use('/api', apiRoutes);
 
-// 2. Serve Static Frontend if present (Enables 1-click full-stack local testing)
-if (hasFrontend) {
+// 2. Serve Static React Frontend & SPA Fallback
+if (frontendPath) {
   app.use(express.static(frontendPath));
 
-  app.get('/', (_req, res) => {
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
     res.sendFile(path.join(frontendPath, 'index.html'));
-  });
-  app.get('/triage', (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'triage.html'));
-  });
-  app.get('/analyze', (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'analyze.html'));
-  });
-  app.get('/rights', (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'rights.html'));
-  });
-  app.get('/aid', (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'aid.html'));
-  });
-  app.get('/action', (_req, res) => {
-    res.sendFile(path.join(frontendPath, 'action.html'));
   });
 } else {
   // Standalone API discovery endpoint for isolated backend deployments
