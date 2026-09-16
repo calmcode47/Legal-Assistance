@@ -85,3 +85,24 @@ export class CriticAgent {
     }
   }
 }
+
+export async function auditDraft(candidateDraft: any, originalDocOrInput: any): Promise<any> {
+  const docText =
+    typeof originalDocOrInput === 'string'
+      ? originalDocOrInput
+      : originalDocOrInput?.documentText || '';
+
+  // Ensure candidateDraft has required shape for CriticAgent
+  const normalizedDraft: ExplainerDraft = {
+    iterationNumber: candidateDraft.iterationNumber ?? candidateDraft.iteration ?? 1,
+    plainLanguageSummary: candidateDraft.plainLanguageSummary ?? candidateDraft.plainLanguage ?? '',
+    readingGradeLevel: candidateDraft.readingGradeLevel ?? 6.5,
+    predatoryClauses: candidateDraft.predatoryClauses ?? candidateDraft.clauses ?? [],
+    assertableRights: candidateDraft.assertableRights ?? [],
+    actionChecklist: candidateDraft.actionChecklist ?? [],
+    disclaimer: candidateDraft.disclaimer ?? '',
+  };
+
+  return CriticAgent.auditDraft(normalizedDraft, docText);
+}
+

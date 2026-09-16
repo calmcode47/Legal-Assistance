@@ -53,13 +53,28 @@ export interface CriticAudit {
   remediationInstructions: string[];
 }
 
+export interface SafeFallback {
+  disclaimer: string;
+  generalEducationalInfo: string;
+  recommendedAction: string;
+}
+
 export interface LoopExecutionReceipt {
   sessionId: string;
   totalIterations: number;
+  iterations?: number;
   converged: boolean;
+  status: 'converged' | 'unresolved';
   finalAuditScore: number;
+  score?: number;
   triage: TriageResult;
   verifiedAnalysis: ExplainerDraft;
+  output: {
+    plainLanguage: string;
+    clauses: unknown[];
+  };
+  lastCriticFeedback: string;
+  safeFallback?: SafeFallback;
   recommendedClinics: LegalAidClinic[];
   executionTimeMs: number;
   timestamp: string;

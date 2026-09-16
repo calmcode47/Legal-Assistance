@@ -29,7 +29,8 @@ export class LLMService {
    * Generates a text response from the configured LLM provider
    */
   public static async generate(prompt: string, options?: LLMGenerateOptions): Promise<string> {
-    const isMock = env.LLM_PROVIDER === 'mock' || !env.GEMINI_API_KEY;
+    const isTest = process.env.NODE_ENV === 'test';
+    const isMock = isTest || env.LLM_PROVIDER === 'mock' || !env.GEMINI_API_KEY;
 
     if (isMock) {
       return this.mockGenerate(prompt, options);
@@ -37,8 +38,9 @@ export class LLMService {
 
     try {
       const client = this.getClient();
+      const modelName = env.GEMINI_MODEL || 'gemini-2.5-flash';
       const model = client.getGenerativeModel({
-        model: 'gemini-1.5-flash',
+        model: modelName,
         systemInstruction: options?.systemInstruction,
         generationConfig: {
           temperature: options?.temperature ?? 0.2,
@@ -139,7 +141,27 @@ export class LLMService {
       });
     }
 
-    // 3. Document Explainer Mock Response
+    // 3. Legal Aid Matcher Mock Response
+    if (systemLower.includes('pro bono & legal aid intake coordinator') || lowerPrompt.includes('intake preparation checklist')) {
+      return JSON.stringify({
+        eligibilityOverview: 'Under Legal Services Corporation (LSC) federal guidelines, free legal aid is generally available for households earning up to 125%-200% of the Federal Poverty Level.',
+        recommendedDocuments: [
+          'Proof of monthly household income (most recent paystubs, W2, or government benefits letter)',
+          'Original copy of notice to vacate, 3-day notice, or court summons',
+          'Signed residential lease agreement or workplace contract',
+          'Proof of rent payments (bank statements, money order receipts, or canceled checks)',
+          'Dated photographs or correspondence documenting housing habitability defects or wage disputes',
+        ],
+        intakeQuestionsToExpect: [
+          'What exact date and method was the notice delivered to you?',
+          'What is the total disputed dollar amount claimed by the opposing party?',
+          'Has an Unlawful Detainer lawsuit or formal court summons been filed with the clerk?',
+        ],
+        urgencyNote: 'Contact the clinic as early as possible during morning intake hours (8:30 AM - 11:30 AM) as walk-in consultation slots fill rapidly.',
+      });
+    }
+
+    // 4. Document Explainer Mock Response
     return JSON.stringify({
       iterationNumber: 1,
       plainLanguageSummary:

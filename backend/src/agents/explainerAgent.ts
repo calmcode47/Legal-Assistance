@@ -64,3 +64,21 @@ export class ExplainerAgent {
     }
   }
 }
+
+export async function generateDraft(params: {
+  documentText: string;
+  domainHint?: string;
+  jurisdiction?: string;
+  iteration?: number;
+  criticFeedback?: string[];
+  role?: string;
+}): Promise<any> {
+  return ExplainerAgent.generateDraft({
+    documentText: params.documentText,
+    domainHint: params.domainHint,
+    jurisdiction: params.jurisdiction,
+    iteration: params.iteration ?? 1,
+    criticFeedback: params.criticFeedback,
+  });
+}
+

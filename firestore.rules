@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Zero-Trust Civil Justice Security Rules:
+    // Raw citizen legal intake and PII are never permanently written to unauthenticated cloud collections.
+    // All persistent writes require authenticated attorney/clinic credentials.
+
+    match /{document=**} {
+      allow read: if request.auth != null;
+      allow write: if false; // Strict immutable zero-trust default
+    }
+
+    // Public verified statutory knowledge and legal aid directory cache (read-only)
+    match /statutory_directory/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+  }
+}

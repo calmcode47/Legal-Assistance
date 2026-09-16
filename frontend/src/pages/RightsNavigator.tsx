@@ -347,6 +347,9 @@ export const RightsNavigator: React.FC = () => {
                 <button type="button" className="btn btn-dark" onClick={() => navigate('/action')}>
                   Draft Answer / Notice of Dispute
                 </button>
+                <button type="button" className="btn btn-outline" onClick={() => navigate('/analyze')}>
+                  Demystify Notice with AI
+                </button>
                 <button type="button" className="btn btn-outline" onClick={() => setCurrentStep(2)}>
                   Modify Violations
                 </button>

@@ -14,6 +14,7 @@ export const DemandLetterBuilder: React.FC = () => {
   const [disputedAmount, setDisputedAmount] = useState<number>(1850.0);
   const [incidentDate, setIncidentDate] = useState('August 31, 2026');
   const [includeTrebleDamages, setIncludeTrebleDamages] = useState(true);
+  const [additionalContext, setAdditionalContext] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [letterData, setLetterData] = useState<ProSeLetterData | null>(null);
@@ -33,6 +34,7 @@ export const DemandLetterBuilder: React.FC = () => {
         disputedAmount,
         incidentDate,
         includeTrebleDamages,
+        additionalContext: additionalContext.trim() || undefined,
       });
       setLetterData(data);
     } finally {
@@ -62,7 +64,7 @@ export const DemandLetterBuilder: React.FC = () => {
         </div>
         <h1>Pro Se Legal Demand Notice Builder</h1>
         <p style={{ color: 'var(--on-surface-variant)', fontSize: '1.05rem', maxWidth: '780px', marginTop: '0.5rem' }}>
-          Format formal, legally sound, and properly served demand letters that self-represented citizens can sign, send via certified mail, or enter into small claims court records.
+          Format formal, legally sound, and properly served demand letters that self-represented citizens can sign, send via certified mail, or enter into court records.
         </p>
       </div>
 
@@ -81,7 +83,7 @@ export const DemandLetterBuilder: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="material-symbols-outlined" style={{ color: 'var(--verified-green)' }}>verified</span>
           <strong style={{ fontSize: '0.85rem', color: 'var(--primary)' }}>
-            Governing Statute: {letterData?.formalCitation || 'Civil Code Statutory Authority'}
+            Governing Authority: {letterData?.formalCitation || 'Statutory Civil Code Authority'}
           </strong>
         </div>
 
@@ -135,7 +137,7 @@ export const DemandLetterBuilder: React.FC = () => {
             </button>
           </div>
           <ol style={{ paddingLeft: '1.25rem', fontSize: '0.82rem', color: 'var(--on-surface)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-            {letterData.certifiedMailInstructions.map((instruction, idx) => (
+            {(letterData.certifiedMailInstructions || []).map((instruction, idx) => (
               <li key={idx}>{instruction}</li>
             ))}
           </ol>
@@ -147,9 +149,9 @@ export const DemandLetterBuilder: React.FC = () => {
         {/* Left Column: Letter Customization Form */}
         <div className="legal-card no-print" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.15rem', marginBottom: '0.35rem' }}>Letter Configuration</h2>
+            <h2 style={{ fontSize: '1.15rem', marginBottom: '0.35rem' }}>Notice Configuration</h2>
             <p style={{ fontSize: '0.82rem', color: 'var(--on-surface-variant)' }}>
-              Choose a statutory demand template and customize party information.
+              Choose a statutory demand template and customize party and claim information.
             </p>
           </div>
 
@@ -188,7 +190,7 @@ export const DemandLetterBuilder: React.FC = () => {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Opposing Party (Landlord/Employer)</label>
+              <label className="form-label">Opposing Party (Recipient)</label>
               <input
                 type="text"
                 className="form-input"
@@ -219,7 +221,7 @@ export const DemandLetterBuilder: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Rental or Subject Premises Address</label>
+            <label className="form-label">Rental or Workplace Premises Address</label>
             <input
               type="text"
               className="form-input"
@@ -239,7 +241,7 @@ export const DemandLetterBuilder: React.FC = () => {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Incident / Move-Out Date</label>
+              <label className="form-label">Incident / Vacate Date</label>
               <input
                 type="text"
                 className="form-input"
@@ -247,6 +249,17 @@ export const DemandLetterBuilder: React.FC = () => {
                 onChange={(e) => setIncidentDate(e.target.value)}
               />
             </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Additional Dispute Facts or Account Numbers</label>
+            <textarea
+              className="form-textarea"
+              rows={3}
+              value={additionalContext}
+              onChange={(e) => setAdditionalContext(e.target.value)}
+              placeholder="e.g. Broken water heater since July 12th; or Account #982-124; or Unpaid overtime for August..."
+            />
           </div>
 
           {templateType === 'SECURITY_DEPOSIT_RETURN' && (
@@ -264,7 +277,7 @@ export const DemandLetterBuilder: React.FC = () => {
               <div style={{ fontSize: '0.82rem', color: 'var(--on-surface)' }}>
                 <strong>Include statutory bad-faith punitive penalty demand</strong>
                 <div style={{ color: 'var(--on-surface-variant)', fontSize: '0.75rem' }}>
-                  Cites Civil Code § 1950.5(l) allowing recovery of up to twice the deposit amount for bad-faith withholding.
+                  Cites bad faith retention penalties permitting recovery of up to twice or treble the deposit amount.
                 </div>
               </div>
             </div>
@@ -277,7 +290,7 @@ export const DemandLetterBuilder: React.FC = () => {
             disabled={loading}
             style={{ marginTop: '0.5rem' }}
           >
-            {loading ? 'Refreshing Document...' : 'Update Document Preview'}
+            {loading ? 'Refreshing Document...' : 'Regenerate Document Preview'}
           </button>
         </div>
 

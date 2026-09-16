@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { triageIssue, LegalDomain, LegalDomainType, TriageData, UrgencyLevel } from '../services/api';
+import { triageIssue, LegalDomain, LegalDomainType, TriageResult, UrgencyLevel } from '../services/api';
 
 export const EmergencyTriage: React.FC = () => {
   const navigate = useNavigate();
 
   const [narrative, setNarrative] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<LegalDomainType>(LegalDomain.TENANCY_AND_HOUSING);
+  const [stateCode, setStateCode] = useState('CA');
+  const [zipCode, setZipCode] = useState('90012');
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
-  const [triageResult, setTriageResult] = useState<TriageData | null>(null);
+  const [triageResult, setTriageResult] = useState<TriageResult | null>(null);
 
   const categories = [
     { id: LegalDomain.TENANCY_AND_HOUSING, label: 'Tenancy & Evictions', icon: 'home' },
@@ -47,16 +49,18 @@ export const EmergencyTriage: React.FC = () => {
   };
 
   // Sample scenario loader
-  const loadScenario = (text: string, category: LegalDomainType) => {
+  const loadScenario = (text: string, category: LegalDomainType, state = 'CA', zip = '90012') => {
     setNarrative(text);
     setSelectedCategory(category);
+    setStateCode(state);
+    setZipCode(zip);
   };
 
-  // Run live triage
+  // Run live triage against backend /api/triage
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!narrative.trim()) {
-      alert('Please describe your legal issue or select a sample scenario.');
+    if (!narrative.trim() || narrative.trim().length < 5) {
+      alert('Please describe your legal issue with at least 5 characters.');
       return;
     }
 
@@ -64,8 +68,8 @@ export const EmergencyTriage: React.FC = () => {
     try {
       const result = await triageIssue({
         query: narrative,
-        state: 'CA',
-        zipCode: '90012',
+        state: stateCode,
+        zipCode: zipCode.trim() || undefined,
       });
       setTriageResult(result);
     } finally {
@@ -84,7 +88,7 @@ export const EmergencyTriage: React.FC = () => {
         <h1>Free, Safe Legal Help in Plain Language</h1>
         <p style={{ color: 'var(--on-surface-variant)', fontSize: '1.05rem', maxWidth: '780px', marginTop: '0.5rem' }}>
           Demystify eviction notices, unpaid wages, predatory debt, and complex legal contracts without expensive attorney retainers.
-          Immediate triage backed by statutory code analysis.
+          Immediate triage backed by statutory code analysis and PII redaction.
         </p>
       </div>
 
@@ -119,6 +123,35 @@ export const EmergencyTriage: React.FC = () => {
               </div>
             </div>
 
+            {/* State and ZIP Code Inputs */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">State / Jurisdiction</label>
+                <select
+                  className="form-select"
+                  value={stateCode}
+                  onChange={(e) => setStateCode(e.target.value)}
+                >
+                  <option value="CA">California (CA)</option>
+                  <option value="NY">New York (NY)</option>
+                  <option value="TX">Texas (TX)</option>
+                  <option value="US">National / Other (US)</option>
+                </select>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label">5-Digit ZIP Code</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  maxLength={5}
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  placeholder="e.g. 90012"
+                />
+              </div>
+            </div>
+
             {/* Text Narrative Input */}
             <div className="form-group">
               <div className="form-label">
@@ -138,33 +171,39 @@ export const EmergencyTriage: React.FC = () => {
             </div>
 
             {/* Action Bar: Voice, Upload, Sample, Submit */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <button
                   type="button"
+                  className={`btn ${isRecording ? 'btn-danger' : 'btn-outline'}`}
+                  style={{ fontSize: '0.78rem', padding: '0.45rem 0.75rem' }}
                   onClick={handleVoiceRecord}
-                  className={`btn btn-outline ${isRecording ? 'badge-red' : ''}`}
-                  style={{ fontSize: '0.75rem', padding: '0.5rem 0.85rem' }}
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px', color: isRecording ? 'var(--emergency-red)' : 'inherit' }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
                     {isRecording ? 'mic' : 'mic_none'}
                   </span>
-                  <span>{isRecording ? 'Recording Voice...' : 'Dictate Issue'}</span>
+                  <span>{isRecording ? 'Listening...' : 'Voice Input'}</span>
                 </button>
 
-                <label className="btn btn-outline" style={{ fontSize: '0.75rem', padding: '0.5rem 0.85rem', cursor: 'pointer' }}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>upload_file</span>
-                  <span>Attach Notice</span>
+                <label
+                  className="btn btn-outline"
+                  style={{ fontSize: '0.78rem', padding: '0.45rem 0.75rem', cursor: 'pointer', marginBottom: 0 }}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>upload_file</span>
+                  <span>{uploadedFileName ? 'Notice Attached' : 'Attach Notice'}</span>
                   <input
                     type="file"
+                    accept=".pdf,.txt,.docx,.png,.jpg"
                     style={{ display: 'none' }}
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        setUploadedFileName(file.name);
-                        if (!narrative) {
-                          setNarrative(`[Attached Document: ${file.name}]\nAnalyzing civil legal notice and statutory deadlines under state code...`);
-                        }
+                        setUploadedFileName(e.target.files[0].name);
+                        const reader = new FileReader();
+                        reader.onload = (re) => {
+                          const content = re.target?.result as string;
+                          if (content) setNarrative((prev) => `${prev}\n\n[Attached Notice]:\n${content.slice(0, 1000)}`);
+                        };
+                        reader.readAsText(e.target.files[0]);
                       }
                     }}
                   />
@@ -176,28 +215,21 @@ export const EmergencyTriage: React.FC = () => {
                 className="btn btn-primary"
                 disabled={loading}
                 onClick={handleAnalyze}
-                style={{ padding: '0.75rem 1.5rem', fontSize: '0.85rem' }}
+                style={{ padding: '0.55rem 1.5rem', fontSize: '0.85rem' }}
               >
                 {loading ? (
                   <>
                     <span className="live-dot"></span>
-                    <span>Analyzing Legal Situation...</span>
+                    <span>Triage in Progress...</span>
                   </>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined">gavel</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>bolt</span>
                     <span>Analyze My Rights Safely</span>
                   </>
                 )}
               </button>
             </div>
-
-            {uploadedFileName && (
-              <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--verified-green)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
-                <span>Attached: <strong>{uploadedFileName}</strong> (Client-side PII scrubbed before transmission)</span>
-              </div>
-            )}
 
             {/* Quick Sample Scenarios */}
             <div style={{ marginTop: '1.5rem', borderTop: '1px dashed var(--outline-variant)', paddingTop: '1rem' }}>
@@ -212,7 +244,9 @@ export const EmergencyTriage: React.FC = () => {
                   onClick={() =>
                     loadScenario(
                       'Received a 3-day notice to quit for withholding rent due to severe water leak and black mold in bathroom that landlord refused to fix for 45 days.',
-                      LegalDomain.TENANCY_AND_HOUSING
+                      LegalDomain.TENANCY_AND_HOUSING,
+                      'CA',
+                      '90012'
                     )
                   }
                 >
@@ -225,7 +259,9 @@ export const EmergencyTriage: React.FC = () => {
                   onClick={() =>
                     loadScenario(
                       'Employer withheld final paycheck and last 3 weeks of overtime wages after I resigned, claiming unspecified inventory damage.',
-                      LegalDomain.EMPLOYMENT_AND_LABOR
+                      LegalDomain.EMPLOYMENT_AND_LABOR,
+                      'CA',
+                      '90012'
                     )
                   }
                 >
@@ -238,7 +274,9 @@ export const EmergencyTriage: React.FC = () => {
                   onClick={() =>
                     loadScenario(
                       'Third-party debt collection agency calls my workplace 6 times daily and threatens arrest for an 8-year-old disputed medical charge.',
-                      LegalDomain.CONSUMER_AND_DEBT
+                      LegalDomain.CONSUMER_AND_DEBT,
+                      'NY',
+                      '10001'
                     )
                   }
                 >
@@ -285,9 +323,27 @@ export const EmergencyTriage: React.FC = () => {
 
             {triageResult ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>
+                  <span>Detected Domain: <strong>{triageResult.detectedDomain}</strong></span>
+                  <span className="badge badge-green">{Math.round(triageResult.confidenceScore * 100)}% AI Grounding</span>
+                </div>
+
                 <p style={{ fontSize: '0.9rem', color: 'var(--on-surface)', lineHeight: 1.6 }}>
                   {triageResult.urgencyReasoning}
                 </p>
+
+                {/* Emergency Hotlines Callout */}
+                {triageResult.emergencyHotlinesTriggered && (
+                  <div className="legal-card-well" style={{ backgroundColor: '#ffffff', borderLeft: '4px solid var(--emergency-red)', padding: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--emergency-red)', fontWeight: 700, fontSize: '0.8rem' }}>
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>crisis_alert</span>
+                      <span>CRITICAL DEFENSE HOTLINE TRIGGERED</span>
+                    </div>
+                    <p style={{ fontSize: '0.82rem', marginTop: '0.3rem', color: 'var(--on-surface)' }}>
+                      Self-help lockouts and utility cuts without a judicial writ violate state penal and civil codes. Call emergency legal defense immediately at <strong>1-800-555-LEGAL</strong> or dial <strong>2-1-1</strong>.
+                    </p>
+                  </div>
+                )}
 
                 {triageResult.statutoryDeadlineAlert && (
                   <div className="legal-card-well" style={{ borderLeft: '3px solid var(--emergency-red)', backgroundColor: '#ffffff' }}>
@@ -301,12 +357,13 @@ export const EmergencyTriage: React.FC = () => {
                   </div>
                 )}
 
+                {/* Next Steps List */}
                 <div>
                   <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', fontWeight: 700, color: 'var(--on-surface-variant)', letterSpacing: '0.05em' }}>
                     Recommended Immediate Actions:
                   </span>
                   <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.5rem', fontSize: '0.85rem' }}>
-                    {triageResult.nextSteps.map((step, idx) => (
+                    {(triageResult.nextSteps || []).map((step, idx) => (
                       <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
                         <span className="material-symbols-outlined" style={{ fontSize: '16px', color: 'var(--secondary)' }}>
                           arrow_forward
@@ -317,32 +374,45 @@ export const EmergencyTriage: React.FC = () => {
                   </ul>
                 </div>
 
-                {/* Quick Transition Buttons */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem', borderTop: '1px solid var(--outline-faint)', paddingTop: '1rem' }}>
-                  <button
-                    type="button"
-                    className="btn btn-dark"
-                    style={{ fontSize: '0.75rem' }}
-                    onClick={() => navigate('/rights')}
-                  >
-                    Verify Statutory Rights
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    style={{ fontSize: '0.75rem' }}
-                    onClick={() => navigate('/aid')}
-                  >
-                    Locate Free Legal Aid
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    style={{ fontSize: '0.75rem' }}
-                    onClick={() => navigate('/action')}
-                  >
-                    Build Demand Letter
-                  </button>
+                {/* Dynamic Smart Routing Based on recommendedNextModule */}
+                <div style={{ marginTop: '0.5rem', borderTop: '1px solid var(--outline-faint)', paddingTop: '1rem' }}>
+                  <span style={{ fontSize: '0.72rem', textTransform: 'uppercase', color: 'var(--on-surface-variant)', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>
+                    Recommended Next Module:
+                  </span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <button
+                      type="button"
+                      className={`btn ${triageResult.recommendedNextModule === 'DEMYSITIFIER' ? 'btn-primary' : 'btn-dark'}`}
+                      style={{ fontSize: '0.75rem' }}
+                      onClick={() => navigate('/analyze')}
+                    >
+                      Demystify Document
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn ${triageResult.recommendedNextModule === 'RIGHTS_NAVIGATOR' ? 'btn-primary' : 'btn-outline'}`}
+                      style={{ fontSize: '0.75rem' }}
+                      onClick={() => navigate('/rights')}
+                    >
+                      Verify Statutory Rights
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn ${triageResult.recommendedNextModule === 'AID_LOCATOR' ? 'btn-primary' : 'btn-outline'}`}
+                      style={{ fontSize: '0.75rem' }}
+                      onClick={() => navigate('/aid')}
+                    >
+                      Locate Free Legal Aid
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ fontSize: '0.75rem' }}
+                      onClick={() => navigate('/action')}
+                    >
+                      Build Demand Letter
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -371,7 +441,7 @@ export const EmergencyTriage: React.FC = () => {
               <h3 style={{ fontSize: '1rem' }}>Client Privacy & Zero Data Retention</h3>
             </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--on-surface-variant)', lineHeight: 1.5 }}>
-              All names, phone numbers, addresses, and Social Security Numbers are automatically stripped client-side before any cognitive processing. 
+              All names, phone numbers, addresses, and Social Security Numbers are automatically stripped before cognitive processing. 
               Sessions are ephemeral and purged immediately upon exit.
             </p>
           </div>

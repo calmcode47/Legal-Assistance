@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { matchLegalAid, LegalAidData, ClinicItem } from '../services/api';
+import { matchLegalAid, LegalAidData, ClinicItem, LegalDomain, LegalDomainType } from '../services/api';
 
 export const LegalAidLocator: React.FC = () => {
   const [zipCode, setZipCode] = useState('90012');
+  const [stateCode, setStateCode] = useState('CA');
+  const [domainFilter, setDomainFilter] = useState<string>('ALL');
   const [income, setIncome] = useState(24000);
   const [householdSize, setHouseholdSize] = useState(3);
+  const [userSituation, setUserSituation] = useState('');
   const [loading, setLoading] = useState(false);
   const [legalAidData, setLegalAidData] = useState<LegalAidData | null>(null);
   const [referralSentFor, setReferralSentFor] = useState<string | null>(null);
@@ -14,9 +17,11 @@ export const LegalAidLocator: React.FC = () => {
     try {
       const data = await matchLegalAid({
         zipCode,
-        state: 'CA',
+        state: stateCode,
+        domain: domainFilter === 'ALL' ? undefined : (domainFilter as LegalDomainType),
         annualHouseholdIncome: income,
         householdSize,
+        userSituation: userSituation.trim() || undefined,
       });
       setLegalAidData(data);
     } finally {
@@ -26,7 +31,7 @@ export const LegalAidLocator: React.FC = () => {
 
   useEffect(() => {
     fetchClinics();
-  }, []);
+  }, [stateCode, domainFilter]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,6 +45,8 @@ export const LegalAidLocator: React.FC = () => {
     }, 4000);
   };
 
+  const checklist = legalAidData?.intakeChecklist;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Header */}
@@ -50,13 +57,33 @@ export const LegalAidLocator: React.FC = () => {
         </div>
         <h1>Free Legal Aid & Clinic Locator</h1>
         <p style={{ color: 'var(--on-surface-variant)', fontSize: '1.05rem', maxWidth: '780px', marginTop: '0.5rem' }}>
-          Connect directly with verified Legal Services Corporation (LSC) organizations, voluntary bar association clinics, and tenant defense defense networks in your zip code.
+          Connect directly with verified Legal Services Corporation (LSC) organizations, voluntary bar association clinics, and civil defense networks in your jurisdiction.
         </p>
       </div>
 
       {/* Pre-Screener & Filter Bar */}
       <form onSubmit={handleSearch} className="legal-card" style={{ padding: '1.25rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'flex-end' }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">State Jurisdiction</label>
+            <select
+              className="form-select"
+              value={stateCode}
+              onChange={(e) => {
+                const s = e.target.value;
+                setStateCode(s);
+                if (s === 'NY') setZipCode('10001');
+                else if (s === 'TX') setZipCode('77002');
+                else if (s === 'CA') setZipCode('90012');
+              }}
+            >
+              <option value="CA">California (CA)</option>
+              <option value="NY">New York (NY)</option>
+              <option value="TX">Texas (TX)</option>
+              <option value="US">National / Other (US)</option>
+            </select>
+          </div>
+
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">ZIP Code</label>
             <input
@@ -70,7 +97,23 @@ export const LegalAidLocator: React.FC = () => {
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Annual Household Income ($)</label>
+            <label className="form-label">Practice Area</label>
+            <select
+              className="form-select"
+              value={domainFilter}
+              onChange={(e) => setDomainFilter(e.target.value)}
+            >
+              <option value="ALL">All Legal Practice Areas</option>
+              <option value={LegalDomain.TENANCY_AND_HOUSING}>Tenancy & Evictions</option>
+              <option value={LegalDomain.EMPLOYMENT_AND_LABOR}>Workplace & Wages</option>
+              <option value={LegalDomain.CONSUMER_AND_DEBT}>Consumer & Debt</option>
+              <option value={LegalDomain.FAMILY_AND_DOMESTIC}>Family & Domestic</option>
+              <option value={LegalDomain.CIVIL_RIGHTS_AND_IMMIGRATION}>Civil Rights & Immigration</option>
+            </select>
+          </div>
+
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label">Annual Income ($)</label>
             <input
               type="number"
               className="form-input"
@@ -81,7 +124,7 @@ export const LegalAidLocator: React.FC = () => {
           </div>
 
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">Household Family Size</label>
+            <label className="form-label">Household Size</label>
             <select
               className="form-select"
               value={householdSize}
@@ -98,6 +141,19 @@ export const LegalAidLocator: React.FC = () => {
           <button type="submit" className="btn btn-primary" disabled={loading} style={{ height: '42px' }}>
             {loading ? 'Finding Clinics...' : 'Search Legal Clinics'}
           </button>
+        </div>
+
+        <div style={{ marginTop: '1rem', borderTop: '1px solid var(--outline-faint)', paddingTop: '0.75rem' }}>
+          <label className="form-label" style={{ marginBottom: '0.3rem' }}>
+            Optional: Describe Your Specific Dispute (Generates AI-tailored intake advice)
+          </label>
+          <input
+            type="text"
+            className="form-input"
+            value={userSituation}
+            onChange={(e) => setUserSituation(e.target.value)}
+            placeholder="e.g. Received a 3-day notice to quit for withholding rent due to severe plumbing leaks..."
+          />
         </div>
       </form>
 
@@ -121,11 +177,11 @@ export const LegalAidLocator: React.FC = () => {
                 <strong style={{ fontSize: '1rem', color: legalAidData.isEligibleForFreeLegalAid ? 'var(--verified-text)' : 'var(--caution-text)' }}>
                   {legalAidData.isEligibleForFreeLegalAid
                     ? 'You Appear Eligible for 100% Free Legal Representation!'
-                    : 'Over Standard Poverty Threshold — Pro Bono & Sliding-Scale Options Available'}
+                    : 'Income Above Standard LSC 200% FPL Cap — Low-Bono & Sliding-Scale Still Available'}
                 </strong>
                 <p style={{ fontSize: '0.85rem', color: 'var(--on-surface)', marginTop: '0.2rem' }}>
                   Your estimated household income is approximately <strong>{legalAidData.estimatedFplPercentage}%</strong> of the Federal Poverty Guideline. 
-                  LSC-funded clinics represent households at or below 125%–200% FPL with zero out-of-pocket costs.
+                  LSC-funded clinics represent qualifying households with zero out-of-pocket costs.
                 </p>
               </div>
             </div>
@@ -155,7 +211,7 @@ export const LegalAidLocator: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h2 style={{ fontSize: '1.2rem' }}>Verified Pro Bono & Legal Aid Clinics ({legalAidData?.clinics.length || 0})</h2>
-            <span style={{ fontSize: '0.78rem', color: 'var(--on-surface-variant)' }}>Serving ZIP {zipCode}</span>
+            <span style={{ fontSize: '0.78rem', color: 'var(--on-surface-variant)' }}>Serving {stateCode} • ZIP {zipCode}</span>
           </div>
 
           {legalAidData?.clinics.map((clinic) => (
@@ -179,7 +235,7 @@ export const LegalAidLocator: React.FC = () => {
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem' }}>
                 {clinic.practiceAreas.map((area, idx) => (
                   <span key={idx} className="badge badge-indigo" style={{ fontSize: '0.7rem' }}>
-                    {area}
+                    {typeof area === 'string' ? area.replace(/_/g, ' ') : area}
                   </span>
                 ))}
               </div>
@@ -229,34 +285,69 @@ export const LegalAidLocator: React.FC = () => {
                   onClick={() => handleReferral(clinic)}
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
-                  <span>Submit Intake Referral Pack</span>
+                  <span>Prepare Referral Pack</span>
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Right Column: Dynamic Intake Preparation Checklist */}
+        {/* Right Column: Structured Intake Preparation Checklist */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           <div className="legal-card" style={{ borderTop: '4px solid var(--primary)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
               <span className="material-symbols-outlined" style={{ color: 'var(--secondary)' }}>checklist</span>
               <h3 style={{ fontSize: '1.1rem' }}>Intake Preparation Checklist</h3>
             </div>
-            <p style={{ fontSize: '0.82rem', color: 'var(--on-surface-variant)', lineHeight: 1.5, marginBottom: '1rem' }}>
-              Legal aid attorneys have very limited intake slots. Bringing these exact documents drastically speeds up your case evaluation:
-            </p>
 
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
-              {legalAidData?.intakeChecklist.map((item, idx) => (
-                <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
-                  <span className="material-symbols-outlined" style={{ color: 'var(--verified-green)', fontSize: '18px', flexShrink: 0 }}>
-                    task_alt
-                  </span>
-                  <span style={{ color: 'var(--on-surface)', lineHeight: 1.4 }}>{item}</span>
-                </li>
-              ))}
-            </ul>
+            {checklist && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="legal-card-well" style={{ fontSize: '0.82rem', padding: '0.65rem 0.85rem' }}>
+                  <strong style={{ color: 'var(--primary)', display: 'block', marginBottom: '0.2rem' }}>Eligibility Overview</strong>
+                  <span>{checklist.eligibilityOverview}</span>
+                </div>
+
+                <div>
+                  <strong style={{ fontSize: '0.76rem', textTransform: 'uppercase', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.4rem' }}>
+                    Documents to Bring to Appointment:
+                  </strong>
+                  <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.83rem' }}>
+                    {(checklist.recommendedDocuments || []).map((doc, idx) => (
+                      <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                        <span className="material-symbols-outlined" style={{ color: 'var(--verified-green)', fontSize: '16px', flexShrink: 0 }}>
+                          task_alt
+                        </span>
+                        <span style={{ color: 'var(--on-surface)', lineHeight: 1.4 }}>{doc}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {checklist.intakeQuestionsToExpect && checklist.intakeQuestionsToExpect.length > 0 && (
+                  <div>
+                    <strong style={{ fontSize: '0.76rem', textTransform: 'uppercase', color: 'var(--on-surface-variant)', display: 'block', marginBottom: '0.4rem' }}>
+                      Questions You Will Be Asked:
+                    </strong>
+                    <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
+                      {checklist.intakeQuestionsToExpect.map((q, idx) => (
+                        <li key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem' }}>
+                          <span className="material-symbols-outlined" style={{ color: 'var(--secondary)', fontSize: '16px', flexShrink: 0 }}>
+                            help_outline
+                          </span>
+                          <span style={{ color: 'var(--on-surface-variant)' }}>{q}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {checklist.urgencyNote && (
+                  <div className="legal-card-well" style={{ borderLeft: '3px solid var(--caution-amber)', backgroundColor: 'var(--caution-bg)', fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}>
+                    <strong>Notice:</strong> {checklist.urgencyNote}
+                  </div>
+                )}
+              </div>
+            )}
 
             <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--outline-faint)', paddingTop: '1rem' }}>
               <button

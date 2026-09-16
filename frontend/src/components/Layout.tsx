@@ -1,27 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
+import { checkHealth, HealthStatus } from '../services/api';
+import { StatusBanner } from './StatusBanner';
 
 export const Layout: React.FC = () => {
-  // Double-escape keybinding for domestic violence emergency safety quick exit
+  const [health, setHealth] = useState<HealthStatus | null>(null);
+
   useEffect(() => {
-    let lastEscPress = 0;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        const now = Date.now();
-        if (now - lastEscPress < 500) {
-          window.location.replace('https://weather.com');
-        }
-        lastEscPress = now;
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    checkHealth().then(setHealth);
   }, []);
+
 
   return (
     <div className="app-container">
-      {/* 1. Emergency Legal Alert Hotline Banner (Always Visible) */}
-      <header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, backgroundColor: 'var(--surface)' }}>
+      {/* 1. Top Header (Hotline Banner + Live Status + Navigation + Telemetry) */}
+      <header style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'var(--surface)' }}>
+        {/* 1a. Emergency Legal Alert Hotline Banner (Always Visible) */}
         <div
           role="alert"
           style={{
@@ -56,6 +50,9 @@ export const Layout: React.FC = () => {
             <span>Emergency Call</span>
           </a>
         </div>
+
+        {/* 1b. Real-Time API Status Banner (Honest Live AI vs Offline Simulation Indicator) */}
+        <StatusBanner />
 
         {/* 2. Main Navigation Bar */}
         <div
@@ -137,58 +134,43 @@ export const Layout: React.FC = () => {
               <span style={{ margin: '0 0.25rem', color: 'var(--outline)' }}>/</span>
               <span style={{ color: 'var(--on-surface-variant)' }}>ES</span>
             </div>
+          </div>
+        </div>
 
-            <a
-              href="https://weather.com"
-              className="btn btn-emergency"
-              style={{ padding: '0.35rem 0.75rem', fontSize: '0.72rem' }}
-              title="Double-tap Escape to activate immediate safe exit"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>logout</span>
-              <span>Quick Exit</span>
-            </a>
+        {/* 3. System Verification Sub-Header Banner */}
+        <div
+          style={{
+            backgroundColor: 'var(--surface-container-lowest)',
+            borderBottom: '1px solid var(--outline-faint)',
+            padding: '0.45rem 1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.72rem',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            color: 'var(--on-surface-variant)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <span className="material-symbols-outlined" style={{ color: 'var(--verified-green)', fontSize: '16px' }}>
+              verified
+            </span>
+            <span style={{ color: 'var(--on-surface)', fontWeight: 700 }}>Active Civil Legal Aid Core</span>
+            <span>•</span>
+            <span>{health ? `${health.service} (${health.status})` : 'Connecting to LexisLoop...'}</span>
+            <span>•</span>
+            <span>50 U.S. Jurisdictions</span>
+            <span>•</span>
+            <span style={{ color: 'var(--verified-green)' }}>Zero Data Retention Active</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--verified-green)' }}>
+            <span className="live-dot"></span>
+            <span>{health?.status === 'HEALTHY' ? 'AI Engine Live' : 'Encrypted Sandbox'}</span>
           </div>
         </div>
       </header>
-
-      {/* 3. System Verification Sub-Header Banner */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '94px',
-          left: 0,
-          right: 0,
-          zIndex: 90,
-          backgroundColor: 'var(--surface-container-lowest)',
-          borderBottom: '1px solid var(--outline-faint)',
-          padding: '0.45rem 1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          fontSize: '0.72rem',
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-          color: 'var(--on-surface-variant)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          <span className="material-symbols-outlined" style={{ color: 'var(--verified-green)', fontSize: '16px' }}>
-            verified
-          </span>
-          <span style={{ color: 'var(--on-surface)', fontWeight: 700 }}>Active Civil Legal Aid Core</span>
-          <span>•</span>
-          <span>Statutory Data Updated: Today, 06:00 EST</span>
-          <span>•</span>
-          <span>50 U.S. Jurisdictions</span>
-          <span>•</span>
-          <span style={{ color: 'var(--verified-green)' }}>Zero Data Retention Active</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--verified-green)' }}>
-          <span className="live-dot"></span>
-          <span>Vault Encrypted</span>
-        </div>
-      </div>
 
       {/* 4. Main Page Canvas */}
       <main className="main-content">
@@ -259,7 +241,7 @@ export const Layout: React.FC = () => {
             <p>
               <strong>Disclaimer:</strong> JurisAccess AI is an automated educational tool, not an attorney. Use of this platform does not constitute legal advice or establish an attorney-client relationship. If facing an imminent court trial or lockout, consult with a licensed attorney or legal aid organization immediately.
             </p>
-            <div>WCAG 2.1 AAA Compliant • 100% Client-Side PII Scrubbed</div>
+            <div>WCAG 2.1 AA Compliant • 100% Client-Side PII Scrubbed</div>
           </div>
         </div>
       </footer>

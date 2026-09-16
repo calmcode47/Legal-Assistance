@@ -20,6 +20,7 @@ coverage/
 .env.development.local
 .env.test.local
 .env.production.local
+save_key.sh
 serviceAccountKey.json
 *-credentials.json
 
