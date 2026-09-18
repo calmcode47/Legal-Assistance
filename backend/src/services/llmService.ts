@@ -71,18 +71,61 @@ export class LLMService {
       let urgency = 'MEDIUM';
       let alert = 'Standard 30-day response period applies.';
 
-      if (lowerPrompt.includes('3-day') || lowerPrompt.includes('evict') || lowerPrompt.includes('quit') || lowerPrompt.includes('sheriff')) {
-        domain = 'TENANCY_AND_HOUSING';
-        urgency = 'CRITICAL';
-        alert = 'Immediate 3-Day Notice to Pay or Quit detected. Action required within 72 hours.';
-      } else if (lowerPrompt.includes('wage') || lowerPrompt.includes('overtime') || lowerPrompt.includes('paycheck')) {
+      // Prefer explicit litigant domain hint when present (avoid matching enum names in JSON schema)
+      const hintMatch = lowerPrompt.match(/litigant domain hint:\s*([a-z_]+)/);
+      const explicitHint = hintMatch && hintMatch[1] !== 'none' ? hintMatch[1] : '';
+
+      // Extract only the fenced litigant narrative for keyword detection
+      const contentMatch = lowerPrompt.match(
+        /<litigant_document_content>([\s\S]*?)<\/litigant_document_content>/
+      );
+      const narrative = (contentMatch?.[1] || lowerPrompt).toLowerCase();
+
+      if (
+        explicitHint === 'employment_and_labor' ||
+        narrative.includes('wage') ||
+        narrative.includes('overtime') ||
+        narrative.includes('paycheck')
+      ) {
         domain = 'EMPLOYMENT_AND_LABOR';
         urgency = 'HIGH';
         alert = 'Statutory wage claim must be filed before statute of limitations expires.';
-      } else if (lowerPrompt.includes('debt') || lowerPrompt.includes('collector') || lowerPrompt.includes('collections')) {
+      } else if (
+        explicitHint === 'consumer_and_debt' ||
+        narrative.includes('debt') ||
+        narrative.includes('collector') ||
+        narrative.includes('collections')
+      ) {
         domain = 'CONSUMER_AND_DEBT';
         urgency = 'MEDIUM';
         alert = '30-day FDCPA validation window applies upon receipt of collection notice.';
+      } else if (
+        explicitHint === 'family_and_domestic' ||
+        narrative.includes('custody') ||
+        narrative.includes('domestic violence')
+      ) {
+        domain = 'FAMILY_AND_DOMESTIC';
+        urgency = 'HIGH';
+        alert = 'If you are in danger, call 911 or the National Domestic Violence Hotline (1-800-799-7233).';
+      } else if (
+        narrative.includes('3-day') ||
+        narrative.includes('evict') ||
+        narrative.includes('quit') ||
+        narrative.includes('sheriff') ||
+        explicitHint === 'tenancy_and_housing'
+      ) {
+        domain = 'TENANCY_AND_HOUSING';
+        urgency =
+          narrative.includes('3-day') ||
+          narrative.includes('evict') ||
+          narrative.includes('quit') ||
+          narrative.includes('sheriff')
+            ? 'CRITICAL'
+            : 'MEDIUM';
+        alert =
+          urgency === 'CRITICAL'
+            ? 'Immediate 3-Day Notice to Pay or Quit detected. Action required within 72 hours.'
+            : alert;
       }
 
       return JSON.stringify({
@@ -161,7 +204,125 @@ export class LLMService {
       });
     }
 
-    // 4. Document Explainer Mock Response
+    // 4. Document Explainer Mock Response (domain-aware for offline/CI evaluation)
+    const isWageDoc =
+      lowerPrompt.includes('wage') ||
+      lowerPrompt.includes('overtime') ||
+      lowerPrompt.includes('paycheck') ||
+      lowerPrompt.includes('employment') ||
+      lowerPrompt.includes('flsa');
+    const isDebtDoc =
+      lowerPrompt.includes('debt') ||
+      lowerPrompt.includes('collector') ||
+      lowerPrompt.includes('collections') ||
+      lowerPrompt.includes('fdcpa') ||
+      lowerPrompt.includes('consumer_and_debt');
+    const isFamilyDoc =
+      lowerPrompt.includes('custody') ||
+      lowerPrompt.includes('domestic') ||
+      lowerPrompt.includes('restraining') ||
+      lowerPrompt.includes('family_and_domestic');
+
+    if (isWageDoc) {
+      return JSON.stringify({
+        iterationNumber: 1,
+        plainLanguageSummary:
+          'This looks like a wage or overtime dispute. In plain language, your employer may owe unpaid pay under the Fair Labor Standards Act. Keep timesheets and pay stubs. You can file a wage claim with your state labor agency.',
+        readingGradeLevel: 6.2,
+        predatoryClauses: [
+          {
+            clauseId: 'CLAUSE-WAGE-01',
+            originalText: 'Employee agrees overtime is unpaid unless pre-approved in writing by management.',
+            plainMeaning: 'The employer is trying to avoid paying overtime that federal law may require.',
+            riskTier: 'RED_PREDATORY',
+            statutoryDefect: 'Overtime waivers are generally unenforceable under FLSA, 29 U.S.C. § 207.',
+            recommendedAction: 'Document hours worked and send a written unpaid-wages demand before filing a labor claim.',
+          },
+        ],
+        assertableRights: [
+          {
+            rightName: 'Fair Labor Standards Act Overtime Protections',
+            citation: '29 U.S.C. § 207',
+            jurisdiction: 'Federal / State Labor Code',
+            plainDescription: 'Covered non-exempt workers generally must receive overtime pay for hours over 40 in a workweek.',
+            howToAssert: 'Calculate unpaid hours from timesheets and file with the state Labor Commissioner or DOL.',
+          },
+        ],
+        actionChecklist: [
+          '1. Gather pay stubs, timesheets, and offer letters.',
+          '2. Send a formal unpaid-wages demand via Certified Mail.',
+          '3. File a wage claim with your state labor agency if unpaid.',
+          '4. Contact a free employment legal aid clinic for intake.',
+        ],
+        disclaimer:
+          'Notice: JurisAccess AI is an automated educational tool designed to assist self-represented litigants. It does not provide formal legal counsel or create an attorney-client relationship.',
+      });
+    }
+
+    if (isDebtDoc) {
+      return JSON.stringify({
+        iterationNumber: 1,
+        plainLanguageSummary:
+          'This looks like a debt collection notice. Under federal law, you usually have 30 days to dispute the debt in writing and ask for proof. Collectors must stop most collection until they validate the debt.',
+        readingGradeLevel: 6.3,
+        predatoryClauses: [
+          {
+            clauseId: 'CLAUSE-DEBT-01',
+            originalText: 'Failure to pay within 48 hours will result in immediate arrest and wage garnishment.',
+            plainMeaning: 'The collector is using scare language. Civil debt collectors cannot order your arrest.',
+            riskTier: 'RED_PREDATORY',
+            statutoryDefect: 'Threats of arrest for consumer debt may violate FDCPA, 15 U.S.C. § 1692e.',
+            recommendedAction: 'Send a written debt validation request within 30 days and keep a copy.',
+          },
+        ],
+        assertableRights: [
+          {
+            rightName: 'Debt Validation Rights',
+            citation: '15 U.S.C. § 1692g',
+            jurisdiction: 'Federal FDCPA',
+            plainDescription: 'Within 30 days of first notice, you can dispute the debt and demand written verification.',
+            howToAssert: 'Mail a certified FDCPA validation letter and keep the return receipt.',
+          },
+        ],
+        actionChecklist: [
+          '1. Do not ignore the notice; calendar the 30-day validation window.',
+          '2. Send a written FDCPA validation demand by Certified Mail.',
+          '3. Ask the collector to communicate only in writing.',
+          '4. Contact a consumer legal aid clinic if sued or harassed.',
+        ],
+        disclaimer:
+          'Notice: JurisAccess AI is an automated educational tool designed to assist self-represented litigants. It does not provide formal legal counsel or create an attorney-client relationship.',
+      });
+    }
+
+    if (isFamilyDoc) {
+      return JSON.stringify({
+        iterationNumber: 1,
+        plainLanguageSummary:
+          'This appears to involve family, custody, or domestic safety concerns. If you are in danger, call local emergency services or the National Domestic Violence Hotline. Civil protective orders and custody filings are handled by local courts and legal aid.',
+        readingGradeLevel: 6.1,
+        predatoryClauses: [],
+        assertableRights: [
+          {
+            rightName: 'Access to Emergency Protective Relief',
+            citation: 'State Family / Domestic Violence Codes',
+            jurisdiction: 'State Family Court',
+            plainDescription: 'People facing abuse can seek emergency protective orders through local courts and advocacy programs.',
+            howToAssert: 'Contact a domestic violence advocate or legal aid family unit for intake and safety planning.',
+          },
+        ],
+        actionChecklist: [
+          '1. If you are in immediate danger, call 911.',
+          '2. Call the National Domestic Violence Hotline at 1-800-799-7233.',
+          '3. Preserve messages, photos, and police reports in a safe place.',
+          '4. Contact a family-law legal aid clinic for protective order or custody intake.',
+        ],
+        disclaimer:
+          'Notice: JurisAccess AI is an automated educational tool designed to assist self-represented litigants. It does not provide formal legal counsel or create an attorney-client relationship.',
+      });
+    }
+
+    // Default: tenancy / housing explainer
     return JSON.stringify({
       iterationNumber: 1,
       plainLanguageSummary:

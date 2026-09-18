@@ -16,7 +16,7 @@ export class TriageController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { query, state, zipCode } = req.body;
+      const { query, state, zipCode, domainHint } = req.body;
 
       // 1. Guard against prompt injection
       const scan = InjectionGuard.scan(query);
@@ -35,8 +35,8 @@ export class TriageController {
       // 2. Pre-sanitize PII
       const { sanitizedText } = PIIScrubber.sanitize(query);
 
-      // 3. Triage
-      const result = await TriageAgent.triage(sanitizedText, state, zipCode);
+      // 3. Triage (honors litigant-selected domainHint when provided)
+      const result = await TriageAgent.triage(sanitizedText, state, zipCode, domainHint);
 
       res.status(200).json({
         success: true,

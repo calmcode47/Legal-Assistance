@@ -1,6 +1,7 @@
 /**
  * JurisAccess AI - Citation & Statutory Grounding Validator
- * Detects hallucinated precedents and validates statutory citation formatting.
+ * Detects hallucinated precedents and validates statutory citations against
+ * an intentional civil A2J allowlist (anti-hallucination scope boundary).
  */
 
 export interface CitationAuditResult {
@@ -18,18 +19,59 @@ const HALLUCINATED_PATTERNS = [
   /\bXX\s+U\.S\.C\.\s+§\b/i,
 ];
 
+/**
+ * Intentional statutory allowlist for civil A2J domains (housing, wages, debt).
+ * Citations outside this set are treated as unverified for safety.
+ */
+const ALLOWED_STATUTE_SNIPPETS = [
+  '15 u.s.c. § 1692',
+  '29 u.s.c. § 201',
+  '29 u.s.c. § 207',
+  'urlta § 2.104',
+  'urlta § 4.101',
+  'cal. civ. code § 1941',
+  'cal. civ. code § 1942',
+  'cal. civ. code § 1950',
+  'cal. civ. code § 1953',
+  'cal. civ. code § 1954',
+  'cal. civil code § 1941',
+  'cal. civil code § 1942',
+  'cal. civil code § 1950',
+  'cal. civil code § 1953',
+  'cal. civil code § 1954',
+  'civil code § 789.3',
+  'civil code § 1671',
+  'civil code § 1941',
+  'civil code § 1942',
+  'civil code § 1950',
+  'civil code § 1953',
+  'civil code § 1954',
+  'n.y. real prop',
+  'tex. prop. code',
+  'texas property code',
+  'labor code §',
+];
+
 // Legitimate statutory citation formats in civil legal aid
 const STATUTORY_CITATION_PATTERNS = [
-  /\b\d+\s+U\.S\.C\.\s+§\s*[\d\w.-]+/i,                      // Federal code (e.g. 15 U.S.C. § 1692)
-  /\b(?:Cal\.|N\.Y\.|Tex\.|Fla\.|Ill\.)\s+[A-Za-z\s.]+§\s*[\d\w.-]+/i, // State codes
-  /\bURLTA\s+§\s*[\d.]+/i,                                    // Uniform Residential Landlord and Tenant Act
-  /\bCivil\s+Code\s+§\s*[\d.]+/i,
-  /\bLabor\s+Code\s+§\s*[\d.]+/i,
+  /\b\d+\s+U\.S\.C\.\s+§\s*[\d\w.-]+/gi,
+  /\b(?:Cal\.|N\.Y\.|Tex\.|Fla\.|Ill\.)\s+[A-Za-z\s.]+§\s*[\d\w.-]+/gi,
+  /\bURLTA\s+§\s*[\d.]+/gi,
+  /\bCivil\s+Code\s+§\s*[\d.]+/gi,
+  /\bLabor\s+Code\s+§\s*[\d.]+/gi,
 ];
+
+const CASE_CITATION_PATTERN = /\b[A-Z][A-Za-z]+\s+v\.\s+[A-Z][A-Za-z]+\b/g;
+
+function isAllowlistedStatute(citation: string): boolean {
+  const normalized = citation.toLowerCase().replace(/\s+/g, ' ').trim();
+  return ALLOWED_STATUTE_SNIPPETS.some((allowed) => normalized.includes(allowed));
+}
 
 export class CitationValidator {
   /**
-   * Scans generated analysis for hallucinated citation placeholders or fake precedents
+   * Scans generated analysis for hallucinated citation placeholders,
+   * fake precedents, and out-of-scope statutes not on the A2J allowlist.
    */
   public static validate(text: string): CitationAuditResult {
     const flaggedCitations: string[] = [];
@@ -41,11 +83,35 @@ export class CitationValidator {
       }
     }
 
-    if (flaggedCitations.length > 0) {
+    // Reject unknown case-style citations (common hallucination vector)
+    const caseMatches = text.match(CASE_CITATION_PATTERN) || [];
+    for (const caseCite of caseMatches) {
+      if (/fake/i.test(caseCite) || !/mata\s+v\.\s+avianca/i.test(caseCite)) {
+        // Educational mention of Mata v. Avianca is allowed as cautionary example only;
+        // all other case cites are treated as unverified for pro se safety.
+        if (!/mata\s+v\.\s+avianca/i.test(caseCite)) {
+          flaggedCitations.push(caseCite);
+        }
+      }
+    }
+
+    // Flag statutory citations that are not on the intentional allowlist
+    for (const pattern of STATUTORY_CITATION_PATTERNS) {
+      pattern.lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(text)) !== null) {
+        if (!isAllowlistedStatute(match[0])) {
+          flaggedCitations.push(match[0]);
+        }
+      }
+    }
+
+    const unique = Array.from(new Set(flaggedCitations));
+    if (unique.length > 0) {
       return {
         isValid: false,
-        flaggedCitations,
-        reason: `Detected ungrounded or placeholder citations: ${flaggedCitations.join(', ')}`,
+        flaggedCitations: unique,
+        reason: `Detected ungrounded, placeholder, or out-of-scope citations: ${unique.join(', ')}`,
       };
     }
 
@@ -58,9 +124,10 @@ export class CitationValidator {
   public static extractRecognizedCitations(text: string): string[] {
     const recognized: string[] = [];
     for (const pattern of STATUTORY_CITATION_PATTERNS) {
+      pattern.lastIndex = 0;
       const matches = text.match(pattern);
       if (matches) {
-        recognized.push(...matches);
+        recognized.push(...matches.filter((m) => isAllowlistedStatute(m)));
       }
     }
     return Array.from(new Set(recognized));

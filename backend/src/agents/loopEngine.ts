@@ -110,7 +110,8 @@ export class LoopEngine {
     // STAGE 5: Egress Formatting & Safe Fallback Handling
     // -------------------------------------------------------------
     if (converged && lastDraft) {
-      const rawSummary = (lastDraft as any).plainLanguage ?? lastDraft.plainLanguageSummary ?? '';
+      const draftRecord = lastDraft as ExplainerDraft & { plainLanguage?: string; clauses?: ExplainerDraft['predatoryClauses'] };
+      const rawSummary = draftRecord.plainLanguage ?? lastDraft.plainLanguageSummary ?? '';
       const detokenizedSummary = PIIScrubber.detokenize(rawSummary, tokenMap);
       const detokenizedChecklist = (lastDraft.actionChecklist || []).map((step) =>
         PIIScrubber.detokenize(step, tokenMap)
@@ -120,7 +121,7 @@ export class LoopEngine {
         iterationNumber: iterationsExecuted,
         plainLanguageSummary: detokenizedSummary,
         readingGradeLevel: lastDraft.readingGradeLevel ?? 6.5,
-        predatoryClauses: lastDraft.predatoryClauses ?? (lastDraft as any).clauses ?? [],
+        predatoryClauses: lastDraft.predatoryClauses ?? draftRecord.clauses ?? [],
         assertableRights: lastDraft.assertableRights ?? [],
         actionChecklist: detokenizedChecklist,
         disclaimer: lastDraft.disclaimer ?? '',

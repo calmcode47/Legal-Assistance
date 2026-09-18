@@ -14,10 +14,9 @@ import { errorHandler } from './middleware/errorHandler';
 
 export const app = express();
 
-// Path to frontend assets (Vite React dist bundle with fallback)
+// Path to frontend assets (Vite React dist bundle)
 const distPath = path.resolve(__dirname, '../../frontend/dist');
-const rawFrontendPath = path.resolve(__dirname, '../../frontend');
-const frontendPath = fs.existsSync(distPath) ? distPath : (fs.existsSync(rawFrontendPath) ? rawFrontendPath : null);
+const frontendPath = fs.existsSync(distPath) ? distPath : null;
 
 // Security Middleware (Configured to support Google Fonts & Vite assets)
 app.use(

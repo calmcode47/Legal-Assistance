@@ -72,7 +72,7 @@ export async function generateDraft(params: {
   iteration?: number;
   criticFeedback?: string[];
   role?: string;
-}): Promise<any> {
+}): Promise<ExplainerDraft> {
   return ExplainerAgent.generateDraft({
     documentText: params.documentText,
     domainHint: params.domainHint,

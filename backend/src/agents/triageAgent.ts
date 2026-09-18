@@ -13,11 +13,16 @@ export class TriageAgent {
   /**
    * Evaluates citizen query and determines legal domain, urgency level, and routing
    */
-  public static async triage(userQuery: string, state?: string, zipCode?: string): Promise<TriageResult> {
+  public static async triage(
+    userQuery: string,
+    state?: string,
+    zipCode?: string,
+    domainHint?: LegalDomain
+  ): Promise<TriageResult> {
     // 1. Fast deterministic check for critical safety emergencies
     const isEmergency = UPLGuard.isEmergency(userQuery);
 
-    const prompt = buildTriagePrompt(userQuery, state, zipCode);
+    const prompt = buildTriagePrompt(userQuery, state, zipCode, domainHint);
     const rawResponse = await LLMService.generate(prompt, {
       systemInstruction: TRIAGE_SYSTEM_INSTRUCTION,
       temperature: 0.1,
@@ -27,6 +32,13 @@ export class TriageAgent {
       // Clean possible markdown code fences before parsing
       const cleaned = rawResponse.replace(/```json\s*|```/g, '').trim();
       const parsed = JSON.parse(cleaned) as TriageResult;
+
+      // Prefer explicit user-selected domain when the model is uncertain
+      if (domainHint && (parsed.confidenceScore ?? 1) < 0.9) {
+        parsed.detectedDomain = domainHint;
+      } else if (domainHint && !parsed.detectedDomain) {
+        parsed.detectedDomain = domainHint;
+      }
 
       // Override if domestic emergency was deterministically detected
       if (isEmergency) {
@@ -39,10 +51,12 @@ export class TriageAgent {
     } catch (error) {
       console.warn('Failed to parse triage LLM response as JSON. Using fallback triage logic:', error);
       return {
-        detectedDomain: LegalDomain.TENANCY_AND_HOUSING,
+        detectedDomain: domainHint || LegalDomain.TENANCY_AND_HOUSING,
         confidenceScore: 0.85,
         urgencyLevel: isEmergency ? UrgencyLevel.CRITICAL : UrgencyLevel.MEDIUM,
-        urgencyReasoning: 'Inferred civil rights/housing matter based on standard tenant protections.',
+        urgencyReasoning: domainHint
+          ? `Routed using litigant-selected domain ${domainHint} with keyword fallback.`
+          : 'Inferred civil rights/housing matter based on standard tenant protections.',
         emergencyHotlinesTriggered: isEmergency,
         recommendedNextModule: isEmergency ? 'EMERGENCY_HOTLINE' : 'DEMYSITIFIER',
       };

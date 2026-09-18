@@ -5,6 +5,7 @@
 
 import { LegalDomain, LegalAidClinic } from '../types/legal';
 import { ProSeLetterRequest } from '../types/api';
+import { CacheService } from './cacheService';
 
 // Verified representative LSC & civil legal aid organizations
 const VERIFIED_LEGAL_AID_CLINICS: LegalAidClinic[] = [
@@ -80,9 +81,19 @@ const VERIFIED_LEGAL_AID_CLINICS: LegalAidClinic[] = [
   },
 ];
 
+/** Approximate 2024 HHS Federal Poverty Level (contiguous US) used for LSC screening. */
+export function estimateFederalPovertyLevel(householdSize: number): number {
+  const size = Math.max(1, Math.min(householdSize, 15));
+  const base = 15060;
+  const perAdditional = 5380;
+  return base + (size - 1) * perAdditional;
+}
+
 export class LegalAidService {
   /**
-   * Finds matching legal aid clinics based on zip code, state, domain, and optional income
+   * Finds matching legal aid clinics based on zip code, state, domain, and optional income.
+   * Ranking: exact ZIP → same-state domain match → national referral.
+   * When income is provided, clinics whose FPL ceiling the household exceeds are deprioritized.
    */
   public static findClinics(params: {
     zipCode: string;
@@ -91,18 +102,64 @@ export class LegalAidService {
     annualHouseholdIncome?: number;
     householdSize?: number;
   }): LegalAidClinic[] {
-    const { zipCode, state, domain } = params;
+    const { zipCode, state, domain, annualHouseholdIncome, householdSize } = params;
+    const cacheKey = `clinics:${state}:${zipCode}:${domain ?? 'ALL'}:${annualHouseholdIncome ?? 'NONE'}:${householdSize ?? 1}`;
+    const cached = CacheService.get<LegalAidClinic[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
 
-    const matched = VERIFIED_LEGAL_AID_CLINICS.filter((clinic) => {
-      // Direct ZIP code match or state-wide match
+    const fpl =
+      annualHouseholdIncome !== undefined
+        ? estimateFederalPovertyLevel(householdSize ?? 1)
+        : null;
+    const fplRatio =
+      fpl && annualHouseholdIncome !== undefined ? annualHouseholdIncome / fpl : null;
+
+    const scored = VERIFIED_LEGAL_AID_CLINICS.map((clinic) => {
       const matchesZip = clinic.zipCodesServed.includes(zipCode);
-      const matchesState = clinic.state === state || clinic.state === 'US';
+      const matchesState = clinic.state === state;
+      const isNational = clinic.state === 'US';
       const matchesDomain = !domain || clinic.practiceAreas.includes(domain);
+      const incomeEligible =
+        fplRatio === null ? true : fplRatio * 100 <= clinic.incomeLimitFplPercentage + 0.01;
 
-      return (matchesZip || matchesState) && matchesDomain;
-    });
+      let score = 0;
+      if (matchesZip && matchesDomain) score += 100;
+      else if (matchesZip) score += 80;
+      else if (matchesState && matchesDomain) score += 50;
+      else if (matchesState) score += 30;
+      else if (isNational && matchesDomain) score += 15;
+      else if (isNational) score += 5;
 
-    return matched.length > 0 ? matched : [VERIFIED_LEGAL_AID_CLINICS[VERIFIED_LEGAL_AID_CLINICS.length - 1]];
+      if (incomeEligible) score += 10;
+      else score -= 20;
+
+      if (clinic.isLscFunded) score += 5;
+
+      const geographicallyRelevant = matchesZip || matchesState || isNational;
+      return { clinic, score, geographicallyRelevant, matchesDomain };
+    })
+      .filter((row) => row.geographicallyRelevant && row.matchesDomain)
+      .sort((a, b) => b.score - a.score);
+
+    if (scored.length === 0) {
+      const fallbackResult = [VERIFIED_LEGAL_AID_CLINICS[VERIFIED_LEGAL_AID_CLINICS.length - 1]];
+      CacheService.set(cacheKey, fallbackResult, 3600000);
+      return fallbackResult;
+    }
+
+    // Prefer ZIP-exact matches when available; otherwise return ranked state/national list.
+    const zipExact = scored.filter((row) => row.clinic.zipCodesServed.includes(zipCode));
+    const ranked = (zipExact.length > 0 ? zipExact : scored).map((row) => row.clinic);
+
+    // Always append national referral as a last-resort option if not already present.
+    const national = VERIFIED_LEGAL_AID_CLINICS[VERIFIED_LEGAL_AID_CLINICS.length - 1];
+    if (!ranked.some((c) => c.id === national.id)) {
+      ranked.push(national);
+    }
+    CacheService.set(cacheKey, ranked, 3600000);
+    return ranked;
   }
 
   /**

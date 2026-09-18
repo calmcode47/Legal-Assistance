@@ -22,6 +22,7 @@ export const TriageRequestSchema = z.object({
   query: z.string().min(5, 'Query must be at least 5 characters long').max(10000, 'Query exceeds 10,000 character limit'),
   state: z.string().length(2, 'State must be a 2-letter postal code (e.g. CA, NY, TX)').optional(),
   zipCode: z.string().regex(/^\d{5}$/, 'ZIP code must be a 5-digit number').optional(),
+  domainHint: z.nativeEnum(LegalDomain).optional(),
 });
 
 export type TriageRequest = z.infer<typeof TriageRequestSchema>;

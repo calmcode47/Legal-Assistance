@@ -20,6 +20,21 @@ describe('MatcherAgent Pro Bono Clinic & Intake Checklist Engine', () => {
     expect(result.clinics.length).toBeGreaterThan(0);
     expect(result.clinics.some((c) => c.isLscFunded)).toBe(true);
     expect(result.clinics.some((c) => c.state === 'CA' || c.state === 'US')).toBe(true);
+    // Exact ZIP match (LAFLA 90012) should rank ahead of other CA clinics
+    expect(result.clinics[0].zipCodesServed).toContain('90012');
+  });
+
+  it('ranks ZIP-exact clinics first and still returns a national fallback', async () => {
+    const result = await MatcherAgent.match({
+      zipCode: '94102',
+      state: 'CA',
+      domain: LegalDomain.CONSUMER_AND_DEBT,
+      annualHouseholdIncome: 18000,
+      householdSize: 2,
+    });
+
+    expect(result.clinics[0].name).toMatch(/Bay Area Legal Aid/i);
+    expect(result.clinics.some((c) => c.state === 'US')).toBe(true);
   });
 
   it('generates a structured intake checklist when user situation is provided', async () => {

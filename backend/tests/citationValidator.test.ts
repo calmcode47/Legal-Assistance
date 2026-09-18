@@ -35,4 +35,12 @@ describe('CitationValidator Anti-Hallucination Engine', () => {
     expect(citations.some((c) => c.includes('15 U.S.C. § 1692g'))).toBe(true);
     expect(citations.some((c) => c.includes('Cal. Civil Code § 1941.1'))).toBe(true);
   });
+
+  it('rejects out-of-scope or fabricated case citations outside the A2J allowlist', () => {
+    const audit = CitationValidator.validate(
+      'As held in Johnson v. ImaginaryLandlord, tenants must vacate immediately under 42 U.S.C. § 99999.'
+    );
+    expect(audit.isValid).toBe(false);
+    expect(audit.flaggedCitations.length).toBeGreaterThan(0);
+  });
 });

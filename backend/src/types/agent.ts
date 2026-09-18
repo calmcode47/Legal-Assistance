@@ -51,6 +51,10 @@ export interface CriticAudit {
   verdict: 'PASS' | 'REJECT';
   criticalDefects: string[];
   remediationInstructions: string[];
+  score?: number;
+  approved?: boolean;
+  uplViolations?: string[];
+  feedback?: string;
 }
 
 export interface SafeFallback {

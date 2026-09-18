@@ -27,11 +27,17 @@ OPERATING RULES:
 4. Output MUST be valid JSON conforming strictly to the requested schema. No conversational filler.
 `.trim();
 
-export function buildTriagePrompt(userQuery: string, state?: string, zipCode?: string): string {
+export function buildTriagePrompt(
+  userQuery: string,
+  state?: string,
+  zipCode?: string,
+  domainHint?: string
+): string {
   return `
 Analyze and classify this citizen legal inquiry:
 
 Jurisdiction Context: State=${state || 'General US'}, ZIP=${zipCode || 'Unknown'}
+Litigant Domain Hint: ${domainHint || 'None provided'}
 
 <litigant_document_content>
 ${userQuery}

@@ -64,35 +64,50 @@ export class CriticAgent {
 
       return parsed;
     } catch (error) {
-      console.warn('Failed to parse critic LLM response as JSON. Computing rule-based score:', error);
-      const isAcceptable = candidateDraft.readingGradeLevel <= 7.0;
+      // Fail closed: never rubber-stamp a draft when the critic response is unparseable.
+      console.warn('Failed to parse critic LLM response as JSON. Rejecting for re-generation:', error);
+      const readabilityOk = candidateDraft.readingGradeLevel <= 7.0;
       return {
         auditId: `AUDIT_CRITIC_FALLBACK_${Date.now()}`,
         iterationEvaluated: candidateDraft.iterationNumber,
         scoreBreakdown: {
-          factualGroundingScore: 30,
-          uplComplianceScore: 25,
-          readabilityScore: isAcceptable ? 24 : 15,
-          actionabilityScore: 18,
-          aggregateScore: isAcceptable ? 97 : 88,
+          factualGroundingScore: 18,
+          uplComplianceScore: 20,
+          readabilityScore: readabilityOk ? 20 : 12,
+          actionabilityScore: 14,
+          aggregateScore: readabilityOk ? 72 : 64,
         },
         hasUplViolation: false,
         hasHallucinatedCitation: false,
-        verdict: isAcceptable ? 'PASS' : 'REJECT',
-        criticalDefects: isAcceptable ? [] : ['Reading grade level exceeds 7th-grade target.'],
-        remediationInstructions: isAcceptable ? [] : ['Simplify sentences and avoid multisyllabic legalese.'],
+        verdict: 'REJECT',
+        criticalDefects: [
+          'Critic response could not be verified as structured JSON; draft withheld pending re-audit.',
+          ...(readabilityOk ? [] : ['Reading grade level exceeds 7th-grade target.']),
+        ],
+        remediationInstructions: [
+          'Regenerate a concise plain-language draft with grounded statutory citations only.',
+          'Include a numbered action checklist and retain the ABA educational disclaimer.',
+        ],
       };
     }
   }
 }
 
-export async function auditDraft(candidateDraft: any, originalDocOrInput: any): Promise<any> {
+type LooseDraft = Partial<ExplainerDraft> & {
+  iteration?: number;
+  plainLanguage?: string;
+  clauses?: ExplainerDraft['predatoryClauses'];
+};
+
+export async function auditDraft(
+  candidateDraft: LooseDraft,
+  originalDocOrInput: string | { documentText?: string }
+): Promise<CriticAudit> {
   const docText =
     typeof originalDocOrInput === 'string'
       ? originalDocOrInput
       : originalDocOrInput?.documentText || '';
 
-  // Ensure candidateDraft has required shape for CriticAgent
   const normalizedDraft: ExplainerDraft = {
     iterationNumber: candidateDraft.iterationNumber ?? candidateDraft.iteration ?? 1,
     plainLanguageSummary: candidateDraft.plainLanguageSummary ?? candidateDraft.plainLanguage ?? '',
