@@ -63,9 +63,9 @@ gantt
 - [x] End-to-end HTTP API integration tests (`tests/api.test.ts`).
 - [x] Verify 100% test pass rate with zero flaky tests (57/57 passed across 13 test files).
 
-### Phase 6: Stitch Frontend Blueprints & Cloudflare Pages Delivery (`COMPLETED`)
+### Phase 6: Stitch Frontend Blueprints & Vercel / Render Delivery (`COMPLETED`)
 - [x] Author comprehensive `frontend.md` with copy-ready Stitch prompts, design system tokens, and WCAG AA accessibility rules.
-- [x] Configure Cloudflare Pages edge deployment (`wrangler.toml`, `public/_headers`, `public/_redirects`, `public/index.html`).
+- [x] Configure Vercel frontend deployment (`frontend/vercel.json`) & Render backend topology (`render.yaml`).
 - [x] Author submission-ready `README.md` strictly aligned with the PromptWars evaluation rubric.
 - [x] Verify repository size (`git count-objects -vH`), commit cleanly to `main`, and prepare final verification evidence.
 

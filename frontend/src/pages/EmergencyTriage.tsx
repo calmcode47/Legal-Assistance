@@ -24,9 +24,22 @@ export const EmergencyTriage: React.FC = () => {
 
   // Voice speech-to-text handler
   const handleVoiceRecord = () => {
-    const SpeechRecognition =
-      (window as unknown as { SpeechRecognition?: any; webkitSpeechRecognition?: any }).SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition?: any }).webkitSpeechRecognition;
+    type SpeechRecognitionLike = {
+      lang: string;
+      interimResults: boolean;
+      onstart: (() => void) | null;
+      onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+      onerror: (() => void) | null;
+      onend: (() => void) | null;
+      start: () => void;
+    };
+    type SpeechRecognitionCtor = new () => SpeechRecognitionLike;
+
+    const speechWindow = window as unknown as {
+      SpeechRecognition?: SpeechRecognitionCtor;
+      webkitSpeechRecognition?: SpeechRecognitionCtor;
+    };
+    const SpeechRecognition = speechWindow.SpeechRecognition || speechWindow.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       alert('Speech recognition is not supported in this browser. Please type your situation in the text box.');
@@ -38,7 +51,7 @@ export const EmergencyTriage: React.FC = () => {
     recognition.interimResults = false;
 
     recognition.onstart = () => setIsRecording(true);
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setNarrative((prev) => (prev ? `${prev} ${transcript}` : transcript));
     };
@@ -70,6 +83,7 @@ export const EmergencyTriage: React.FC = () => {
         query: narrative,
         state: stateCode,
         zipCode: zipCode.trim() || undefined,
+        domainHint: selectedCategory,
       });
       setTriageResult(result);
     } finally {
@@ -106,17 +120,18 @@ export const EmergencyTriage: React.FC = () => {
             </div>
 
             {/* Category Pills */}
-            <div style={{ marginBottom: '1.25rem' }}>
-              <label className="form-label" style={{ marginBottom: '0.5rem' }}>Select Legal Domain Area</label>
+            <div style={{ marginBottom: '1.25rem' }} role="group" aria-labelledby="domain-label">
+              <label id="domain-label" className="form-label" style={{ marginBottom: '0.5rem' }}>Select Legal Domain Area</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {categories.map((cat) => (
                   <button
                     key={cat.id}
                     type="button"
                     className={`pill ${selectedCategory === cat.id ? 'active' : ''}`}
+                    aria-pressed={selectedCategory === cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
                   >
-                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{cat.icon}</span>
+                    <span className="material-symbols-outlined" aria-hidden="true" style={{ fontSize: '16px' }}>{cat.icon}</span>
                     <span>{cat.label}</span>
                   </button>
                 ))}
@@ -126,8 +141,9 @@ export const EmergencyTriage: React.FC = () => {
             {/* State and ZIP Code Inputs */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">State / Jurisdiction</label>
+                <label className="form-label" htmlFor="triage-state">State / Jurisdiction</label>
                 <select
+                  id="triage-state"
                   className="form-select"
                   value={stateCode}
                   onChange={(e) => setStateCode(e.target.value)}
@@ -140,14 +156,17 @@ export const EmergencyTriage: React.FC = () => {
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">5-Digit ZIP Code</label>
+                <label className="form-label" htmlFor="triage-zip">5-Digit ZIP Code</label>
                 <input
+                  id="triage-zip"
                   type="text"
                   className="form-input"
                   maxLength={5}
                   value={zipCode}
                   onChange={(e) => setZipCode(e.target.value)}
                   placeholder="e.g. 90012"
+                  inputMode="numeric"
+                  autoComplete="postal-code"
                 />
               </div>
             </div>

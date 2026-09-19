@@ -46,7 +46,7 @@ JurisAccess AI provides accessible, hallucination-resistant, and privacy-preserv
 | `DEC-003` | Implement dual-mode LLM Service (Gemini API + deterministic mock fallback). | Enables standalone CI execution, automated testing without external API keys, and seamless live cloud inference. | `APPROVED` |
 | `DEC-004` | Strictly decouple frontend specification (`frontend.md`) for Stitch MCP integration. | Enables the user to generate clean, modular UI screens inside their IDE using Stitch while keeping backend pure and lean. | `APPROVED` |
 | `DEC-005` | Enforce repository size `< 2 MB` through comprehensive `.gitignore`. | Outperforms the PromptWars 10 MB limit by 5x; guarantees zero failed submissions due to bloat. | `APPROVED` |
-| `DEC-006` | Deploy Frontend to Cloudflare Pages and Backend to Render Web Service. | Replaces Firebase to leverage Cloudflare edge CDN performance and Render's zero-config Node.js web service scaling. | `APPROVED` |
+| `DEC-006` | Deploy Frontend to Vercel and Backend to Render Web Service. | Leverages Vercel's optimized React SPA edge hosting and Render's zero-config Node.js web service scaling. | `APPROVED` |
 
 ### Non-Goals (`NON-###`)
 

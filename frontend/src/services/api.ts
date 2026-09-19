@@ -47,6 +47,7 @@ export interface TriageRequest {
   query: string;
   state?: string;
   zipCode?: string;
+  domainHint?: LegalDomainType;
 }
 
 export interface TriageResult {
@@ -207,10 +208,19 @@ export interface ProSeLetterData {
   certifiedMailInstructions: string[];
 }
 
-const API_BASE =
-  (typeof window !== 'undefined' &&
-    (window as unknown as { RENDER_BACKEND_URL?: string }).RENDER_BACKEND_URL) ||
-  '/api';
+const API_BASE = (() => {
+  const envUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL;
+  if (envUrl) {
+    return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/$/, '')}/api`;
+  }
+  const windowUrl =
+    typeof window !== 'undefined' &&
+    (window as unknown as { RENDER_BACKEND_URL?: string }).RENDER_BACKEND_URL;
+  if (windowUrl) {
+    return windowUrl.endsWith('/api') ? windowUrl : `${windowUrl.replace(/\/$/, '')}/api`;
+  }
+  return '/api';
+})();
 
 /**
  * Health Check API
@@ -299,7 +309,7 @@ export async function triageIssue(payload: TriageRequest): Promise<TriageResult>
   }
   setApiStatus('offline');
 
-  // Graceful offline fallback
+  // Graceful offline fallback — honor litigant domainHint when keywords are ambiguous
   const lower = payload.query.toLowerCase();
   const isUrgent =
     lower.includes('3-day') ||
@@ -309,21 +319,29 @@ export async function triageIssue(payload: TriageRequest): Promise<TriageResult>
     lower.includes('sheriff');
   const isWage = lower.includes('wage') || lower.includes('overtime') || lower.includes('paycheck');
   const isDebt = lower.includes('debt') || lower.includes('collector') || lower.includes('collections');
+  const isFamily = lower.includes('custody') || lower.includes('domestic') || lower.includes('restraining');
 
-  let domain: LegalDomainType = LegalDomain.TENANCY_AND_HOUSING;
+  let domain: LegalDomainType =
+    payload.domainHint || LegalDomain.TENANCY_AND_HOUSING;
   let urgency: UrgencyLevelType = isUrgent ? UrgencyLevel.CRITICAL : UrgencyLevel.HIGH;
   let reasoning = isUrgent
     ? 'Immediate civil eviction notice detected with statutory response deadline <= 72 hours. Protected under State Civil Code § 789.3.'
-    : 'Active landlord-tenant dispute requiring formal procedural response. Zero client PII logged.';
+    : 'Active civil dispute requiring formal procedural response. Zero client PII logged.';
 
-  if (isWage) {
+  if (isWage || payload.domainHint === LegalDomain.EMPLOYMENT_AND_LABOR) {
     domain = LegalDomain.EMPLOYMENT_AND_LABOR;
     urgency = UrgencyLevel.HIGH;
     reasoning = 'Statutory wage and overtime claim detected under Fair Labor Standards Act and state labor code.';
-  } else if (isDebt) {
+  } else if (isDebt || payload.domainHint === LegalDomain.CONSUMER_AND_DEBT) {
     domain = LegalDomain.CONSUMER_AND_DEBT;
     urgency = UrgencyLevel.MEDIUM;
     reasoning = 'Active third-party debt collection matter subject to FDCPA 30-day statutory dispute windows.';
+  } else if (isFamily || payload.domainHint === LegalDomain.FAMILY_AND_DOMESTIC) {
+    domain = LegalDomain.FAMILY_AND_DOMESTIC;
+    urgency = UrgencyLevel.HIGH;
+    reasoning = 'Family or domestic matter detected. If unsafe, call 911 or 1-800-799-7233.';
+  } else if (payload.domainHint === LegalDomain.TENANCY_AND_HOUSING || isUrgent) {
+    domain = LegalDomain.TENANCY_AND_HOUSING;
   }
 
   return {
@@ -362,12 +380,97 @@ export async function analyzeContract(payload: AnalysisRequest): Promise<Explain
   }
   setApiStatus('offline');
 
+  const lower = `${payload.documentText} ${payload.domainHint || ''}`.toLowerCase();
+  const isWage =
+    payload.domainHint === LegalDomain.EMPLOYMENT_AND_LABOR ||
+    lower.includes('wage') ||
+    lower.includes('overtime') ||
+    lower.includes('paycheck');
+  const isDebt =
+    payload.domainHint === LegalDomain.CONSUMER_AND_DEBT ||
+    lower.includes('debt') ||
+    lower.includes('collector') ||
+    lower.includes('fdcpa');
 
-  // Graceful offline fallback
+  if (isWage) {
+    return {
+      iterationNumber: 1,
+      plainLanguageSummary:
+        'This looks like a wage or overtime dispute. In plain language, your employer may owe unpaid pay under the Fair Labor Standards Act. Keep timesheets and pay stubs, then file a wage claim if needed.',
+      readingGradeLevel: 6.2,
+      predatoryClauses: [
+        {
+          clauseId: 'CLAUSE-WAGE-01',
+          lineNumber: 1,
+          originalText: 'Employee agrees overtime is unpaid unless pre-approved in writing by management.',
+          plainMeaning: 'The employer is trying to avoid paying overtime that federal law may require.',
+          riskTier: ClauseRiskTier.RED_PREDATORY,
+          statutoryDefect: 'Overtime waivers are generally unenforceable under FLSA, 29 U.S.C. § 207.',
+          recommendedAction: 'Document hours worked and send a written unpaid-wages demand before filing a labor claim.',
+        },
+      ],
+      assertableRights: [
+        {
+          rightName: 'Fair Labor Standards Act Overtime Protections',
+          citation: '29 U.S.C. § 207',
+          jurisdiction: payload.jurisdiction || 'Federal / State Labor Code',
+          plainDescription: 'Covered non-exempt workers generally must receive overtime pay for hours over 40 in a workweek.',
+          howToAssert: 'Calculate unpaid hours from timesheets and file with the state Labor Commissioner or DOL.',
+        },
+      ],
+      actionChecklist: [
+        '1. Gather pay stubs, timesheets, and offer letters.',
+        '2. Send a formal unpaid-wages demand via Certified Mail.',
+        '3. File a wage claim with your state labor agency if unpaid.',
+        '4. Contact a free employment legal aid clinic for intake.',
+      ],
+      disclaimer:
+        'Notice: JurisAccess AI is an automated educational tool designed to assist self-represented litigants. It does not provide formal legal counsel or create an attorney-client relationship.',
+    };
+  }
+
+  if (isDebt) {
+    return {
+      iterationNumber: 1,
+      plainLanguageSummary:
+        'This looks like a debt collection notice. Under federal law, you usually have 30 days to dispute the debt in writing and ask for proof.',
+      readingGradeLevel: 6.3,
+      predatoryClauses: [
+        {
+          clauseId: 'CLAUSE-DEBT-01',
+          lineNumber: 1,
+          originalText: 'Failure to pay within 48 hours will result in immediate arrest and wage garnishment.',
+          plainMeaning: 'The collector is using scare language. Civil debt collectors cannot order your arrest.',
+          riskTier: ClauseRiskTier.RED_PREDATORY,
+          statutoryDefect: 'Threats of arrest for consumer debt may violate FDCPA, 15 U.S.C. § 1692e.',
+          recommendedAction: 'Send a written debt validation request within 30 days and keep a copy.',
+        },
+      ],
+      assertableRights: [
+        {
+          rightName: 'Debt Validation Rights',
+          citation: '15 U.S.C. § 1692g',
+          jurisdiction: payload.jurisdiction || 'Federal FDCPA',
+          plainDescription: 'Within 30 days of first notice, you can dispute the debt and demand written verification.',
+          howToAssert: 'Mail a certified FDCPA validation letter and keep the return receipt.',
+        },
+      ],
+      actionChecklist: [
+        '1. Calendar the 30-day validation window.',
+        '2. Send a written FDCPA validation demand by Certified Mail.',
+        '3. Ask the collector to communicate only in writing.',
+        '4. Contact a consumer legal aid clinic if sued or harassed.',
+      ],
+      disclaimer:
+        'Notice: JurisAccess AI is an automated educational tool designed to assist self-represented litigants. It does not provide formal legal counsel or create an attorney-client relationship.',
+    };
+  }
+
+  // Default housing / lease demystification
   return {
     iterationNumber: 1,
     plainLanguageSummary:
-      'This document contains significant one-sided contractual obligations. In plain language, several provisions attempt to waive your non-waivable statutory rights under state law. You retain full procedural rights to written notice and fair hearing before any forfeiture or adverse action can occur.',
+      'This document contains significant one-sided contractual obligations. In plain language, several provisions attempt to waive your non-waivable statutory rights under state law. You retain full procedural rights to written notice and a fair hearing before any forfeiture or adverse action can occur.',
     readingGradeLevel: 6.4,
     predatoryClauses: [
       {
@@ -378,7 +481,7 @@ export async function analyzeContract(payload: AnalysisRequest): Promise<Explain
         plainMeaning:
           'The landlord is trying to force you to surrender your legal right to hot water, heat, and working plumbing, shifting the cost of their building upkeep onto you.',
         riskTier: ClauseRiskTier.RED_PREDATORY,
-        statutoryDefect: 'STRICTLY VOID AS AGAINST PUBLIC POLICY (Cal. Civ. Code § 1953(a)(2)). Habitability cannot be waived.',
+        statutoryDefect: 'STRICTLY VOID AS AGAINST PUBLIC POLICY (Cal. Civ. Code § 1953). Habitability cannot be waived.',
         recommendedAction: 'Do not pay out-of-pocket for primary plumbing or heating repairs. Send a statutory 14-day defect notice.',
       },
       {

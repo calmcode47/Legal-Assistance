@@ -1,13 +1,14 @@
 # JurisAccess AI (LexisLoop) ⚖️
 ### Agentic AI for Civil Legal Assistance & Access to Justice (A2J)
 
-[![CI Test Suite](https://img.shields.io/badge/Tests-57%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
+[![CI Test Suite](https://img.shields.io/badge/Tests-60%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7%20Strict-3178C6.svg)](https://www.typescriptlang.org/)
 [![Backend](https://img.shields.io/badge/Backend-Render%20Web%20Service-46E3B7.svg)](https://render.com/)
-[![Frontend](https://img.shields.io/badge/Frontend-Cloudflare%20Pages-F38020.svg)](https://pages.cloudflare.com/)
+[![Frontend](https://img.shields.io/badge/Frontend-Vercel-000000.svg)](https://vercel.com/)
 [![Security Guardrails](https://img.shields.io/badge/PII%20Protection-Zero--Trace%20Tokenized-6366F1.svg)](#4-security--responsible-ai-high-impact)
 [![WCAG](https://img.shields.io/badge/Accessibility-WCAG%202.1%20AA-059669.svg)](#7-accessibility--usability)
-[![Repo Size](https://img.shields.io/badge/Repo%20Size-%3C%203%20MB%20(Limit%2010MB)-blue.svg)](#repository-hygiene)
+[![Repo Size](https://img.shields.io/badge/Repo%20Size-%3C%204%20MB%20(Limit%2010MB)-blue.svg)](#repository-hygiene)
+[![Visibility](https://img.shields.io/badge/GitHub-Public-success.svg)](https://github.com/calmcode47/Legal-Assistance)
 
 ---
 
@@ -16,7 +17,7 @@
 - **Competition:** PromptWars — Exclusive Edition (Hack2Skill)
 - **Problem Statement:** AI for Legal Assistance and Access
 - **Chosen Vertical:** **Civil Legal Assistance & Access to Justice (A2J)**
-- **Deployment Architecture:** **Cloudflare Pages** (Frontend Edge CDN) + **Render Web Service** (Backend Node.js API)
+- **Deployment Architecture:** **Vercel** (Frontend Edge SPA) + **Render Web Service** (Backend Node.js API)
 - **Target Users:** Self-represented litigants (pro se), low-and-middle-income tenants, gig workers, debt-harassed consumers, and legal aid intake coordinators.
 
 ### The Problem
@@ -82,36 +83,33 @@ Legal-Assistance/
 │   │   ├── services/              # LLM service (Gemini/Mock), Legal Aid directory, Cache
 │   │   ├── routes/                # Express API routes
 │   │   └── server.ts              # Express application listening on dynamic PORT
-│   ├── tests/                     # 21 automated Vitest tests (100% passing)
+│   ├── tests/                     # 37 automated Vitest tests (100% passing)
 │   ├── package.json               # Pure backend dependencies
 │   ├── tsconfig.json              # Strict TypeScript configuration
 │   └── README.md                  # Dedicated backend architecture guide
 │
-├── frontend/                      # Static Edge Application (Cloudflare Pages)
-│   ├── index.html / triage.html   # Emergency Legal Triage & Issue Intake
-│   ├── analyze.html               # Document Demystifier & Clause Scanner
-│   ├── rights.html                # Tenant & Worker Rights Navigator
-│   ├── aid.html                   # Free Legal Aid & Clinic Locator
-│   ├── action.html                # Pro Se Demand Letter Builder
-│   ├── app.js                     # Unified Client API connector
-│   ├── _headers                   # Cloudflare edge security headers
-│   ├── _redirects                 # SPA client routing
-│   ├── wrangler.toml              # Cloudflare Pages configuration
-│   ├── website_design/            # Stitch design system (DESIGN.md) and screen mockups
+├── frontend/                      # React + Vite SPA (Vercel)
+│   ├── src/
+│   │   ├── pages/                 # Emergency Triage, Demystifier, Rights, Aid, Demand Letter
+│   │   ├── components/            # Layout, StatusBanner (skip link + WCAG landmarks)
+│   │   └── services/              # API client, offline fallbacks, timeout shield
+│   ├── tests/                     # 20 automated Vitest tests (API + a11y contracts)
+│   ├── public/                    # Static assets & public icons
+│   ├── vercel.json                # Vercel SPA routing & security headers configuration
+│   ├── vite.config.ts             # Vite configuration with API proxy
 │   └── README.md                  # Dedicated frontend guide
 │
 ├── render.yaml                    # Render Web Service Blueprint (rootDir: backend)
 ├── package.json                   # Root workspace runner scripts (npm test, npm run build)
 ├── prd.md                         # Product Requirements Document
-├── memory.md                      # System Memory & Canonical Registry
-├── architecture.md               # Loop Engineering Architecture
+├── architecture.md                # Loop Engineering Architecture
 ├── rules.md                       # Engineering & Ethics Rulebook
 └── phases.md                      # Phased Implementation Roadmap
 ```
 
 ### Code Standards
-- **Zero `any` Policy:** Strict TypeScript (`noImplicitAny`, `strictNullChecks`, `noUnusedLocals`).
-- **Comprehensive Zod Validation:** All incoming HTTP requests and internal LLM JSON responses are validated at runtime via Zod schemas (`backend/src/types/api.ts`).
+- **Strict TypeScript:** `noImplicitAny`, `strictNullChecks`, and `noUnusedLocals` enabled across backend and frontend packages.
+- **Zod on HTTP boundaries:** All incoming API request bodies are validated with Zod schemas (`backend/src/types/api.ts`).
 - **Centralized Error Discipline:** Standardized JSON error envelopes preventing stack trace leakage.
 
 ---
@@ -137,7 +135,7 @@ JurisAccess includes a comprehensive automated test suite powered by **Vitest**:
 npm test
 ```
 
-### Test Suite Results (100% Pass Rate Across 12 Test Suites):
+### Test Suite Results (100% Pass Rate Across 13 Test Suites / 60 Tests):
 ```
  ✓ tests/injectionGuard.test.ts (5 tests)
      - Detects "ignore previous instructions" jailbreaks
@@ -150,17 +148,19 @@ npm test
      - Detects unauthorized legal representation guarantees
      - Flags improper formal representation phrasing
      - Preserves clean legal educational content
- ✓ tests/citationValidator.test.ts (3 tests)
+ ✓ tests/citationValidator.test.ts (4 tests)
      - Validates legitimate statutory civil citations (URLTA, FDCPA, Cal Civ Code)
      - Rejects fabricated non-existent statutory citations
      - Detects and rejects hallucinated fake federal citations
+     - Rejects out-of-scope case citations outside the A2J allowlist
  ✓ tests/piiScrubber.test.ts (4 tests)
      - Redacts SSNs and restores via token map
      - Redacts phone numbers and email addresses
      - Redacts street addresses
      - Idempotent on text without PII
- ✓ tests/matcherAgent.test.ts (2 tests)
+ ✓ tests/matcherAgent.test.ts (3 tests)
      - Matches LSC clinics by geographic ZIP and income eligibility
+     - Ranks ZIP-exact clinics first with national fallback
      - Formulates structured intake preparation checklists
  ✓ tests/triageAgent.test.ts (3 tests)
      - Classifies 3-day eviction notice as CRITICAL Tenancy matter
@@ -190,21 +190,16 @@ npm test
 
  [Frontend Test Suite]
  ✓ frontend/tests/api.test.ts (13 tests)
-     - checkHealth (live endpoint handling and graceful offline simulation)
-     - triageIssue (emergency eviction classification and wage claim routing)
-     - analyzeContract (clause risk tier mapping and statutory defect parsing)
-     - executeCognitiveLoop (receipt convergence and multi-module fallback)
-     - matchLegalAid (FPL ratio math and pro bono qualification filters)
-     - generateProSeLetter (security deposit, habitability, wage & FDCPA demand templates)
-     - apiStatus store (state transitions and subscriber notifications)
-     - fetchWithTimeout (AbortController fast-fail cold start protection)
- ✓ frontend/tests/a11yAndContracts.test.ts (7 tests)
-     - Relative luminance color contrast verification (17.5:1 text, 5.32:1 buttons)
-     - WCAG 2.1 AA mathematical compliance verification
-     - Minimum 44px touch target compliance and keyboard navigation contracts
+     - checkHealth / triageIssue / analyzeContract / executeCognitiveLoop
+     - matchLegalAid FPL math / generateProSeLetter templates
+     - apiStatus store / fetchWithTimeout cold-start shield
+ ✓ frontend/tests/a11yAndContracts.test.ts (8 tests)
+     - WCAG 2.1 AA contrast math (17.5:1 text, 5.32:1 buttons)
+     - Production SPA routes (/analyze, /rights, /aid, /action)
+     - Skip link, main landmark, double-Escape crisis exit
 
 Test Files  13 passed (13)
-     Tests  57 passed (57)
+     Tests  60 passed (60)
 ```
 
 ---
@@ -328,8 +323,8 @@ Content-Type: application/json
 ## 10. Repository Hygiene & Submission Compliance
 
 - **Single Branch:** Strictly developed and maintained on `main`.
-- **Repository Footprint:** **~0.32 MB** (well under the 10 MB limit).
-- **Public Visibility:** Fully public repository on GitHub.
+- **Repository Footprint:** Tracked source ≈ **4 MB** (well under the 10 MB limit; design mockup PNGs included).
+- **Public Visibility:** Repository must remain **public** on GitHub for evaluation.
 - **Zero Bloat:** Build outputs (`dist/`), dependencies (`node_modules/`), and environment files (`.env`) are strictly excluded via `.gitignore`.
 
 ---
@@ -342,26 +337,27 @@ Content-Type: application/json
 git clone https://github.com/calmcode47/Legal-Assistance.git
 cd Legal-Assistance
 
-# 2. Install dependencies
-npm install
+# 2. Install dependencies (backend + frontend packages)
+npm install --prefix backend
+npm install --prefix frontend
 
-# 3. Run automated test suite (53/53 passing across 12 test suites)
+# 3. Run automated test suite (60/60 passing across 13 test suites)
 npm test
 
 # 4. Start local development servers
-npm run dev
-# Backend runs at http://localhost:8080, Frontend at http://localhost:5173
+npm run dev:backend   # http://localhost:8080
+npm run dev:frontend  # http://localhost:5173
 ```
 
-### Pre-Flight Production Deployment Checklist (Render + Cloudflare Pages)
+### Pre-Flight Production Deployment Checklist (Render + Vercel)
 
-To prevent silent failures in front of judges when orchestrating two distributed cloud services (Render Web Service + Cloudflare Pages):
+To prevent silent failures in front of judges when orchestrating two distributed cloud services (Render Web Service + Vercel):
 
 | Step | Action Item | Verification Command / URL |
 | :--- | :--- | :--- |
-| **1. CORS Synchronization** | Set `CORS_ORIGIN` environment variable on Render to match your exact Cloudflare Pages domain (e.g. `https://jurisaccess.pages.dev`). | `curl -I -X OPTIONS https://<render-url>/api/health -H "Origin: https://<cloudflare-url>"` |
-| **2. Backend Health Verification** | Ensure Render Web Service has completed provisioning and responds with status `UP`. | `curl https://<render-url>/api/health` |
-| **3. Frontend Client Configuration** | Set `RENDER_BACKEND_URL` in Cloudflare Pages build environment or inject into client `window.RENDER_BACKEND_URL`. | Inspect browser console on Cloudflare URL. |
+| **1. CORS Synchronization** | Set `CORS_ORIGIN` environment variable on Render to match your Vercel deployment domain (e.g. `https://jurisaccess.vercel.app` or `*`). | `curl -I -X OPTIONS https://<render-url>/api/health -H "Origin: https://<vercel-url>"` |
+| **2. Backend Health Verification** | Ensure Render Web Service has completed provisioning and responds with status `HEALTHY`. | `curl https://<render-url>/api/health` |
+| **3. Frontend Client Configuration** | Set `VITE_API_URL` in Vercel environment variables pointing to your Render backend URL (e.g. `https://jurisaccess-backend.onrender.com/api`). | Inspect browser Network tab on Vercel URL. |
 | **4. Zero-Crash Client Fallback** | Even if Render experiences cold-start spinup delays (free tier 50s idle wake), `frontend/src/services/api.ts` automatically serves offline-verified statutory simulations so judges never encounter a blank screen. | Disconnect network or stop backend to verify seamless client fallback. |
 | **5. Consolidated Monolithic Fallback** | If single-service deployment is preferred, Render can run the entire unified stack (`backend/src/server.ts` statically serves `frontend/dist`). | `npm run build && npm start` serves both API and React SPA on port 8080. |
 
@@ -375,20 +371,24 @@ To prevent silent failures in front of judges when orchestrating two distributed
      - **Build Command:** `npm install && npm run build`
      - **Start Command:** `npm start`
      - **Health Check Path:** `/api/health`
-   - In the Render dashboard, set `CORS_ORIGIN` to your Cloudflare Pages URL and your optional `GEMINI_API_KEY`.
+   - In the Render dashboard, set `CORS_ORIGIN` to your Vercel URL (or `*`) and your optional `GEMINI_API_KEY`.
    - Your API is live at `https://<your-app-name>.onrender.com`.
 
-### Frontend Deployment: Cloudflare Pages
-1. **Via Cloudflare Dashboard**:
-   - Go to the [Cloudflare Dashboard](https://dash.cloudflare.com) -> **Workers & Pages** -> **Create application** -> **Pages**.
-   - Connect repository `calmcode47/Legal-Assistance`.
-   - Build configuration:
-     - **Framework preset:** None (or Vite)
-     - **Root directory:** `frontend`
-     - **Build command:** `npm run build`
-     - **Build output directory:** `dist`
-   - Click **Save and Deploy**. Cloudflare serves your frontend globally with edge caching and automatic SSL.
-2. **Via Wrangler CLI**:
+### Frontend Deployment: Vercel
+1. **Via Vercel Dashboard**:
+   - Go to [vercel.com](https://vercel.com) -> **Add New...** -> **Project**.
+   - Import your GitHub repository: `calmcode47/Legal-Assistance`.
+   - Configure the project settings:
+     - **Framework Preset:** `Vite`
+     - **Root Directory:** `frontend`
+     - **Build Command:** `npm run build`
+     - **Output Directory:** `dist`
+     - **Install Command:** `npm install`
+   - Add Environment Variable:
+     - `VITE_API_URL`: `https://<your-render-backend-name>.onrender.com/api`
+   - Click **Deploy**. Vercel will build and deploy the React SPA with instant global CDN caching and automatic HTTPS.
+2. **Via Vercel CLI**:
    ```bash
-   cd frontend && npm run build && npx wrangler pages deploy dist --project-name=jurisaccess-frontend
+   cd frontend
+   npx vercel --prod
    ```

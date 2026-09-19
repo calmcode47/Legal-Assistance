@@ -1,0 +1,33 @@
+name: CI Test Suite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+      - name: Run backend + frontend tests
+        run: npm test
+        env:
+          NODE_ENV: test
+          LLM_PROVIDER: mock
+      - name: Build backend and frontend
+        run: |
+          npm run build --prefix backend
+          npm run build --prefix frontend
