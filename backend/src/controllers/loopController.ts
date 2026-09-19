@@ -4,13 +4,13 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { AnalysisRequest, ApiResponse } from '../types/api';
+import { LoopExecutionRequest, ApiResponse } from '../types/api';
 import { LoopExecutionReceipt } from '../types/agent';
 import { LoopEngine } from '../agents/loopEngine';
 
 export class LoopController {
   public static async handleExecute(
-    req: Request<unknown, unknown, AnalysisRequest & { state?: string; zipCode?: string }>,
+    req: Request<unknown, unknown, LoopExecutionRequest>,
     res: Response<ApiResponse<LoopExecutionReceipt>>,
     next: NextFunction
   ): Promise<void> {

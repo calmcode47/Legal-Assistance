@@ -21,7 +21,12 @@ export function errorHandler(
     success: false,
     error: {
       code: errorCode,
-      message: err.message || 'An unexpected error occurred while processing your legal inquiry.',
+      // Server failures can contain implementation or provider details. Keep those
+      // details in server logs and return a stable, safe message to the client.
+      message:
+        statusCode >= 500
+          ? 'An unexpected error occurred while processing your legal inquiry.'
+          : err.message || 'Your request could not be processed.',
       timestamp: new Date().toISOString(),
     },
   });

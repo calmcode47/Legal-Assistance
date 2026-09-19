@@ -78,7 +78,7 @@ gantt
 | **Domain Persona & Logic** | **High Impact** | 30% | Architecture & PRD Audit | Multi-domain civil legal reasoning (tenancy, labor, debt) with urgent deadline identification. |
 | **Code Quality & Maintainability**| **High Impact** | 25% | Static Analysis & Type Checking | Strict TypeScript, zero `any`, modular clean architecture, Zod validation throughout. |
 | **Security & Responsible AI** | **High Impact** | 25% | Penetration & Leak Tests | Zero raw PII transmitted to LLMs; 100% jailbreak rejection; mandatory UPL disclaimers. |
-| **Testing & Functional Validation**| **Medium Impact**| 10% | Automated Test Execution | 57 automated tests across 13 test files (37 backend + 20 frontend) with 100% pass rate. |
+| **Testing & Functional Validation**| **Medium Impact**| 10% | Automated Test Execution | 62 automated tests across 13 test files (41 backend + 21 frontend) with 100% pass rate. |
 | **Resource & Compute Efficiency** | **Medium Impact**| 5% | Latency & Cache Benchmarks | Deterministic short-circuiting, in-memory caching, token-minimized structured prompts. |
 | **Accessibility & Usability** | **Low/Med Impact**| 5% | Readability & WCAG Audit | Plain language (< Grade 7); WCAG 2.1 AA verified contrast; 44px touch targets. |
 | **Overall Quality Profile** | | **100%** | **Comprehensive Automated Audit** | **57/57 Tests Passing • Zero Unhandled Failures • Production Ready** |

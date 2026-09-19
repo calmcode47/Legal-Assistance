@@ -2,9 +2,14 @@
  * JurisAccess AI - HTTP API End-to-End Integration Tests
  */
 
-import { describe, it, expect } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/server';
+import { CriticAgent } from '../src/agents/criticAgent';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe('JurisAccess REST API Endpoints', () => {
   it('GET /api/health should return HEALTHY status', async () => {
@@ -54,6 +59,38 @@ describe('JurisAccess REST API Endpoints', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.plainLanguageSummary).toBeDefined();
     expect(res.body.data.readingGradeLevel).toBeLessThanOrEqual(7.0);
+    expect(res.body.data.disclaimer).toContain('JurisAccess AI is an automated educational tool');
+  });
+
+  it('POST /api/analyze-contract withholds an unverified draft after all allowed attempts', async () => {
+    vi.spyOn(CriticAgent, 'auditDraft').mockResolvedValue({
+      auditId: 'AUDIT_REJECT',
+      iterationEvaluated: 1,
+      scoreBreakdown: {
+        factualGroundingScore: 20,
+        uplComplianceScore: 25,
+        readabilityScore: 20,
+        actionabilityScore: 15,
+        aggregateScore: 80,
+      },
+      hasUplViolation: false,
+      hasHallucinatedCitation: true,
+      verdict: 'REJECT',
+      criticalDefects: ['Citation could not be verified.'],
+      remediationInstructions: ['Remove the unsupported citation.'],
+    });
+
+    const res = await request(app)
+      .post('/api/analyze-contract')
+      .send({
+        documentText: 'Tenant waives statutory 24-hour notice of inspection. Rent is due on the first day of each month.',
+        maxIterations: 3,
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.predatoryClauses).toEqual([]);
+    expect(res.body.data.plainLanguageSummary).toMatch(/could not verify/i);
     expect(res.body.data.disclaimer).toContain('JurisAccess AI is an automated educational tool');
   });
 
@@ -110,5 +147,21 @@ describe('JurisAccess REST API Endpoints', () => {
     expect(res.body.data.sessionId).toBeDefined();
     expect(res.body.data.converged).toBe(true);
     expect(res.body.data.finalAuditScore).toBeGreaterThanOrEqual(95);
+  });
+
+  it('POST /api/loop-execute preserves location fields for local clinic matching', async () => {
+    const res = await request(app)
+      .post('/api/loop-execute')
+      .send({
+        documentText: 'My landlord served a three-day notice to quit for alleged late rent.',
+        jurisdiction: 'New York',
+        state: 'NY',
+        zipCode: '10001',
+        maxIterations: 1,
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.recommendedClinics[0].state).toBe('NY');
   });
 });

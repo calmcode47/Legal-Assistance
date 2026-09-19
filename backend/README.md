@@ -12,10 +12,10 @@ This directory contains the production-grade Node.js / TypeScript backend servic
 
 ## Quick Start
 ```bash
-# Install dependencies
-npm install
+# Install dependencies exactly as locked
+npm ci
 
-# Run automated tests (21/21 passed)
+# Run automated tests (41/41 passed)
 npm test
 
 # Build TypeScript
@@ -28,6 +28,6 @@ npm run dev
 
 ## Deployment on Render
 Deploy directly as a Web Service using [`render.yaml`](../render.yaml) at repository root:
-- **Build Command:** `npm install && npm run build`
+- **Build Command:** `npm ci && npm run build`
 - **Start Command:** `npm start`
 - **Health Check Path:** `/api/health`

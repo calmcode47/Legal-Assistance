@@ -19,7 +19,15 @@ const EnvSchema = z.object({
   LLM_PROVIDER: z.enum(['gemini', 'mock']).default('mock'),
   RATE_LIMIT_WINDOW_MS: z.string().transform((val) => parseInt(val, 10)).default('60000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform((val) => parseInt(val, 10)).default('60'),
-  CORS_ORIGIN: z.string().default('*'),
+  CORS_ORIGIN: z.string().default('http://localhost:5173'),
+}).superRefine((config, context) => {
+  if (config.NODE_ENV === 'production' && config.CORS_ORIGIN === '*') {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['CORS_ORIGIN'],
+      message: 'CORS_ORIGIN must be an exact frontend origin in production; wildcards are not allowed.',
+    });
+  }
 });
 
 const parsedEnv = EnvSchema.safeParse(process.env);

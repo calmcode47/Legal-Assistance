@@ -37,6 +37,15 @@ export const AnalysisRequestSchema = z.object({
 
 export type AnalysisRequest = z.infer<typeof AnalysisRequestSchema>;
 
+// The closed-loop endpoint also needs location data for legal-aid matching.
+// Extending the shared analysis schema prevents Zod from silently stripping it.
+export const LoopExecutionRequestSchema = AnalysisRequestSchema.extend({
+  state: z.string().length(2, 'State must be a 2-letter postal code (e.g. CA, NY, TX)').optional(),
+  zipCode: z.string().regex(/^\d{5}$/, 'ZIP code must be a 5-digit number').optional(),
+});
+
+export type LoopExecutionRequest = z.infer<typeof LoopExecutionRequestSchema>;
+
 // 3. Legal Aid Matcher Request Schema
 export const LegalAidRequestSchema = z.object({
   zipCode: z.string().regex(/^\d{5}$/, 'ZIP code must be 5 digits'),

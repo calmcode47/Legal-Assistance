@@ -1,7 +1,7 @@
 # JurisAccess AI (LexisLoop) ⚖️
 ### Agentic AI for Civil Legal Assistance & Access to Justice (A2J)
 
-[![CI Test Suite](https://img.shields.io/badge/Tests-60%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
+[![CI Test Suite](https://img.shields.io/badge/Tests-62%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7%20Strict-3178C6.svg)](https://www.typescriptlang.org/)
 [![Backend](https://img.shields.io/badge/Backend-Render%20Web%20Service-46E3B7.svg)](https://render.com/)
 [![Frontend](https://img.shields.io/badge/Frontend-Vercel-000000.svg)](https://vercel.com/)
@@ -83,7 +83,7 @@ Legal-Assistance/
 │   │   ├── services/              # LLM service (Gemini/Mock), Legal Aid directory, Cache
 │   │   ├── routes/                # Express API routes
 │   │   └── server.ts              # Express application listening on dynamic PORT
-│   ├── tests/                     # 37 automated Vitest tests (100% passing)
+│   ├── tests/                     # 41 automated Vitest tests (100% passing)
 │   ├── package.json               # Pure backend dependencies
 │   ├── tsconfig.json              # Strict TypeScript configuration
 │   └── README.md                  # Dedicated backend architecture guide
@@ -93,7 +93,7 @@ Legal-Assistance/
 │   │   ├── pages/                 # Emergency Triage, Demystifier, Rights, Aid, Demand Letter
 │   │   ├── components/            # Layout, StatusBanner (skip link + WCAG landmarks)
 │   │   └── services/              # API client, offline fallbacks, timeout shield
-│   ├── tests/                     # 20 automated Vitest tests (API + a11y contracts)
+│   ├── tests/                     # 21 automated Vitest tests (API + a11y contracts)
 │   ├── public/                    # Static assets & public icons
 │   ├── vercel.json                # Vercel SPA routing & security headers configuration
 │   ├── vite.config.ts             # Vite configuration with API proxy
@@ -135,7 +135,7 @@ JurisAccess includes a comprehensive automated test suite powered by **Vitest**:
 npm test
 ```
 
-### Test Suite Results (100% Pass Rate Across 13 Test Suites / 60 Tests):
+### Test Suite Results (100% Pass Rate Across 13 Test Suites / 62 Tests):
 ```
  ✓ tests/injectionGuard.test.ts (5 tests)
      - Detects "ignore previous instructions" jailbreaks
@@ -179,7 +179,7 @@ npm test
  ✓ tests/loopEngine.test.ts (2 tests)
      - Full 5-stage loop execution with convergence >= 95%
      - Rejection of prompt injections at Stage 1 before LLM inference
- ✓ tests/api.test.ts (7 tests)
+ ✓ tests/api.test.ts (9 tests)
      - GET /api/health (200 OK)
      - POST /api/triage (200 OK with classification & urgency)
      - POST /api/triage validation rejection (400 Bad Request)
@@ -199,7 +199,7 @@ npm test
      - Skip link, main landmark, double-Escape crisis exit
 
 Test Files  13 passed (13)
-     Tests  60 passed (60)
+     Tests  62 passed (62)
 ```
 
 ---
@@ -323,7 +323,7 @@ Content-Type: application/json
 ## 10. Repository Hygiene & Submission Compliance
 
 - **Single Branch:** Strictly developed and maintained on `main`.
-- **Repository Footprint:** Tracked source ≈ **4 MB** (well under the 10 MB limit; design mockup PNGs included).
+- **Repository Footprint:** GitHub reports ≈ **3 MB** of tracked content (well under the 10 MB limit; design mockup PNGs included).
 - **Public Visibility:** Repository must remain **public** on GitHub for evaluation.
 - **Zero Bloat:** Build outputs (`dist/`), dependencies (`node_modules/`), and environment files (`.env`) are strictly excluded via `.gitignore`.
 
@@ -337,11 +337,11 @@ Content-Type: application/json
 git clone https://github.com/calmcode47/Legal-Assistance.git
 cd Legal-Assistance
 
-# 2. Install dependencies (backend + frontend packages)
-npm install --prefix backend
-npm install --prefix frontend
+# 2. Install dependencies exactly as locked (backend + frontend packages)
+npm ci --prefix backend
+npm ci --prefix frontend
 
-# 3. Run automated test suite (60/60 passing across 13 test suites)
+# 3. Run automated test suite (62/62 passing across 13 test suites)
 npm test
 
 # 4. Start local development servers
@@ -355,7 +355,7 @@ To prevent silent failures in front of judges when orchestrating two distributed
 
 | Step | Action Item | Verification Command / URL |
 | :--- | :--- | :--- |
-| **1. CORS Synchronization** | Set `CORS_ORIGIN` environment variable on Render to match your Vercel deployment domain (e.g. `https://jurisaccess.vercel.app` or `*`). | `curl -I -X OPTIONS https://<render-url>/api/health -H "Origin: https://<vercel-url>"` |
+| **1. CORS Synchronization** | Set `CORS_ORIGIN` to the exact Vercel deployment origin (for example, `https://jurisaccess.vercel.app`). Do not use a wildcard in production. | `curl -I -X OPTIONS https://<render-url>/api/health -H "Origin: https://<vercel-url>"` |
 | **2. Backend Health Verification** | Ensure Render Web Service has completed provisioning and responds with status `HEALTHY`. | `curl https://<render-url>/api/health` |
 | **3. Frontend Client Configuration** | Set `VITE_API_URL` in Vercel environment variables pointing to your Render backend URL (e.g. `https://jurisaccess-backend.onrender.com/api`). | Inspect browser Network tab on Vercel URL. |
 | **4. Zero-Crash Client Fallback** | Even if Render experiences cold-start spinup delays (free tier 50s idle wake), `frontend/src/services/api.ts` automatically serves offline-verified statutory simulations so judges never encounter a blank screen. | Disconnect network or stop backend to verify seamless client fallback. |
@@ -368,10 +368,10 @@ To prevent silent failures in front of judges when orchestrating two distributed
    - Click **New** -> **Blueprint**.
    - Connect your GitHub repository: `calmcode47/Legal-Assistance`.
    - Render automatically parses `render.yaml` and provisions a Node.js web service with:
-     - **Build Command:** `npm install && npm run build`
+     - **Build Command:** `npm ci && npm run build`
      - **Start Command:** `npm start`
      - **Health Check Path:** `/api/health`
-   - In the Render dashboard, set `CORS_ORIGIN` to your Vercel URL (or `*`) and your optional `GEMINI_API_KEY`.
+   - In the Render dashboard, set `CORS_ORIGIN` to your exact Vercel URL and configure `GEMINI_API_KEY` if you want live Gemini responses.
    - Your API is live at `https://<your-app-name>.onrender.com`.
 
 ### Frontend Deployment: Vercel
@@ -383,7 +383,7 @@ To prevent silent failures in front of judges when orchestrating two distributed
      - **Root Directory:** `frontend`
      - **Build Command:** `npm run build`
      - **Output Directory:** `dist`
-     - **Install Command:** `npm install`
+     - **Install Command:** `npm ci`
    - Add Environment Variable:
      - `VITE_API_URL`: `https://<your-render-backend-name>.onrender.com/api`
    - Click **Deploy**. Vercel will build and deploy the React SPA with instant global CDN caching and automatic HTTPS.

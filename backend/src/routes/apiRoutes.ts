@@ -11,6 +11,7 @@ import { validateBody } from '../middleware/validation';
 import {
   TriageRequestSchema,
   AnalysisRequestSchema,
+  LoopExecutionRequestSchema,
   LegalAidRequestSchema,
   ProSeLetterRequestSchema,
 } from '../types/api';
@@ -40,6 +41,6 @@ router.post('/match-aid', validateBody(LegalAidRequestSchema), AidController.han
 router.post('/pro-se-letter', validateBody(ProSeLetterRequestSchema), AidController.handleProSeLetter);
 
 // 5. Complete Closed-Loop Cognitive Pipeline
-router.post('/loop-execute', validateBody(AnalysisRequestSchema), LoopController.handleExecute);
+router.post('/loop-execute', validateBody(LoopExecutionRequestSchema), LoopController.handleExecute);
 
 export default router;
