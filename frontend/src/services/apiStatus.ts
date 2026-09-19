@@ -4,7 +4,7 @@
  * to live AI analysis or running in verified offline simulation demo mode.
  */
 
-export type ApiStatus = 'checking' | 'live' | 'offline';
+export type ApiStatus = 'checking' | 'activating' | 'live' | 'offline';
 
 type Listener = (status: ApiStatus) => void;
 

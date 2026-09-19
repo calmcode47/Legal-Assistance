@@ -13,8 +13,19 @@ export const StatusBanner: React.FC = () => {
   if (status === 'checking') {
     return (
       <div role="status" className="status-banner status-banner--checking">
-        <span className="material-symbols-outlined status-banner-icon">sync</span>
+        <span className="material-symbols-outlined status-banner-icon rotating">sync</span>
         <span>Connecting to JurisAccess AI Cloud Service…</span>
+      </div>
+    );
+  }
+
+  if (status === 'activating') {
+    return (
+      <div role="status" className="status-banner status-banner--activating">
+        <span className="material-symbols-outlined status-banner-icon rotating">smart_toy</span>
+        <span>
+          <strong>Backend Activator Bot:</strong> Waking up JurisAccess Cloud Service (Render cold-start spinup)... Connecting live AI automatically in a few seconds.
+        </span>
       </div>
     );
   }

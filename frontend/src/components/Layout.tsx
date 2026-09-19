@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { checkHealth, HealthStatus } from '../services/api';
+import { initBackendActivator } from '../services/backendActivator';
 import { StatusBanner } from './StatusBanner';
 
 export const Layout: React.FC = () => {
@@ -9,6 +10,8 @@ export const Layout: React.FC = () => {
 
   useEffect(() => {
     checkHealth().then(setHealth);
+    const cleanup = initBackendActivator();
+    return cleanup;
   }, []);
 
   // Double-Escape returns the user to Emergency Triage (crisis exit path)

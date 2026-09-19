@@ -7,14 +7,24 @@
 export async function fetchWithTimeout(
   input: RequestInfo | URL,
   init: RequestInit = {},
-  timeoutMs = 7000
+  timeoutMs = 7000,
+  retries = 0
 ): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    clearTimeout(timeoutId);
+    try {
+      const response = await fetch(input, { ...init, signal: controller.signal });
+      if ((response.status === 502 || response.status === 503) && attempt < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        continue;
+      }
+      return response;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
+
+  throw new Error('Network request failed after retries');
 }
