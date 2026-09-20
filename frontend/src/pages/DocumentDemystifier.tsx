@@ -430,11 +430,11 @@ export const DocumentDemystifier: React.FC = () => {
             <button
               type="button"
               className="btn btn-outline"
-              onClick={() => navigate('/rights')}
+              onClick={() => navigate('/analyze')}
               style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>menu_book</span>
-              <span>Explore Rights Navigator</span>
+              <span>Start a New Document Review</span>
             </button>
           </div>
         </div>

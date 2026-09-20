@@ -44,7 +44,7 @@ export const StatusBanner: React.FC = () => {
   return (
     <div role="status" className="status-banner status-banner--live">
       <span className="material-symbols-outlined status-banner-icon">check_circle</span>
-      <span>Live AI analysis connected • Gemini 2.0 Flash Legal Engine Active</span>
+      <span>Live AI analysis connected • protected legal-information workflow active</span>
     </div>
   );
 };

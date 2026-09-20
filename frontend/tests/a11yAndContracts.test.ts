@@ -76,7 +76,7 @@ describe('Design System & WCAG 2.1 AA Verification', () => {
 
     it('verifies React router mounts the production SPA routes', () => {
       const appSource = readFileSync(resolve(__dirname, '../src/App.tsx'), 'utf8');
-      const requiredRoutes = ['/', '/triage', '/analyze', '/rights', '/aid', '/action'];
+      const requiredRoutes = ['/', '/triage', '/analyze', '/aid', '/action'];
       for (const route of requiredRoutes) {
         expect(appSource).toContain(`path="${route}"`);
       }

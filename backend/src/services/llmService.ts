@@ -14,6 +14,7 @@ export interface LLMGenerateOptions {
 
 export class LLMService {
   private static geminiClient: GoogleGenerativeAI | null = null;
+  private static liveProviderUnavailableUntil = 0;
 
   private static getClient(): GoogleGenerativeAI {
     if (!this.geminiClient) {
@@ -30,7 +31,11 @@ export class LLMService {
    */
   public static async generate(prompt: string, options?: LLMGenerateOptions): Promise<string> {
     const isTest = process.env.NODE_ENV === 'test';
-    const isMock = isTest || env.LLM_PROVIDER === 'mock' || !env.GEMINI_API_KEY;
+    const isMock =
+      isTest ||
+      env.LLM_PROVIDER === 'mock' ||
+      !env.GEMINI_API_KEY ||
+      Date.now() < this.liveProviderUnavailableUntil;
 
     if (isMock) {
       return this.mockGenerate(prompt, options);
@@ -49,11 +54,14 @@ export class LLMService {
         },
       });
 
-      const result = await model.generateContent(prompt);
+      const result = await model.generateContent(prompt, { timeout: env.LLM_TIMEOUT_MS });
       const response = result.response;
       return response.text();
     } catch (error) {
-      console.warn('Live Gemini API call failed. Falling back to deterministic response generator:', error);
+      // Avoid multiplying latency and requests across the generator/critic loop
+      // when the upstream provider is unavailable or slow.
+      this.liveProviderUnavailableUntil = Date.now() + env.LLM_CIRCUIT_BREAKER_MS;
+      console.warn('Live Gemini API call failed or timed out; using the deterministic fallback.');
       return this.mockGenerate(prompt, options);
     }
   }

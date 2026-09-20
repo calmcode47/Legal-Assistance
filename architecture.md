@@ -16,7 +16,6 @@ graph TB
     subgraph ClientLayer ["Client & Interaction Layer (Stitch MCP Compatible)"]
         UI_Triage["Legal Emergency Triage UI"]
         UI_Demystifier["Document Demystifier UI"]
-        UI_Rights["Rights Navigator UI"]
         UI_Aid["Legal Aid Locator UI"]
         UI_Action["Pro Se Letter Builder UI"]
     end

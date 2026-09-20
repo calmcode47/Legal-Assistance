@@ -251,28 +251,28 @@ function getDefaultNextSteps(domain: LegalDomainType, urgency: UrgencyLevelType)
   if (urgency === UrgencyLevel.CRITICAL) {
     return [
       'Document all communications, notices, or lockout attempts with date/timestamp photos immediately.',
-      'File an Answer or Emergency Stay with the court clerk before the statutory deadline expires.',
-      'Contact your local LSC-funded legal aid emergency defense clinic or call 211.',
+      'Check the deadline and response instructions printed on the notice or the official court website.',
+      'Contact local legal aid or call 211 promptly to discuss the deadline and available options.',
     ];
   }
   if (domain === LegalDomain.EMPLOYMENT_AND_LABOR) {
     return [
-      'Calculate total unpaid regular and statutory overtime hours using your timesheets and pay stubs.',
-      'Send a formal Demand for Unpaid Wages letter via Certified Mail to your employer.',
-      'File a wage claim with your state Labor Commissioner or federal Department of Labor.',
+      'Gather pay stubs, schedules, timesheets, and written workplace communications.',
+      'Consider asking a legal-aid clinic which wage-protection rules apply to your role and location.',
+      'Use the official state labor-agency or federal Department of Labor website to review filing options.',
     ];
   }
   if (domain === LegalDomain.CONSUMER_AND_DEBT) {
     return [
-      'Send a formal Debt Validation Notice under FDCPA 15 U.S.C. § 1692g within 30 days.',
-      'Instruct collector in writing to cease phone calls and communicate exclusively via postal mail.',
-      'Check whether the debt exceeds your state statutory statute of limitations.',
+      'Keep the original collection notice and record the date you received it.',
+      'Review official consumer-protection guidance or legal aid to see whether a validation request is timely.',
+      'Ask a consumer legal-aid clinic about your state’s applicable limitations period and court deadlines.',
     ];
   }
   return [
     'Document all verbal conversations in writing and preserve physical notices in a secure file.',
-    'Review statutory rights under governing state civil codes.',
-    'Prepare an appointment intake packet for a verified legal aid attorney.',
+    'Review official state or local legal-aid resources that apply to your location.',
+    'Prepare the notice and supporting documents for a legal-aid intake appointment.',
   ];
 }
 
@@ -325,17 +325,17 @@ export async function triageIssue(payload: TriageRequest): Promise<TriageResult>
     payload.domainHint || LegalDomain.TENANCY_AND_HOUSING;
   let urgency: UrgencyLevelType = isUrgent ? UrgencyLevel.CRITICAL : UrgencyLevel.HIGH;
   let reasoning = isUrgent
-    ? 'Immediate civil eviction notice detected with statutory response deadline <= 72 hours. Protected under State Civil Code § 789.3.'
-    : 'Active civil dispute requiring formal procedural response. Zero client PII logged.';
+    ? 'An urgent housing notice may have a short response deadline. Verify the notice instructions with legal aid or the court.'
+    : 'An active civil dispute may require a prompt procedural response. Common identifiers are redacted before model processing.';
 
   if (isWage || payload.domainHint === LegalDomain.EMPLOYMENT_AND_LABOR) {
     domain = LegalDomain.EMPLOYMENT_AND_LABOR;
     urgency = UrgencyLevel.HIGH;
-    reasoning = 'Statutory wage and overtime claim detected under Fair Labor Standards Act and state labor code.';
+    reasoning = 'A wage or overtime concern was detected. Eligibility and filing deadlines depend on the worker’s role and location.';
   } else if (isDebt || payload.domainHint === LegalDomain.CONSUMER_AND_DEBT) {
     domain = LegalDomain.CONSUMER_AND_DEBT;
     urgency = UrgencyLevel.MEDIUM;
-    reasoning = 'Active third-party debt collection matter subject to FDCPA 30-day statutory dispute windows.';
+    reasoning = 'A third-party debt collection concern was detected. Official guidance or legal aid can confirm any applicable response window.';
   } else if (isFamily || payload.domainHint === LegalDomain.FAMILY_AND_DOMESTIC) {
     domain = LegalDomain.FAMILY_AND_DOMESTIC;
     urgency = UrgencyLevel.HIGH;
@@ -350,7 +350,7 @@ export async function triageIssue(payload: TriageRequest): Promise<TriageResult>
     urgencyLevel: urgency,
     urgencyReasoning: reasoning,
     statutoryDeadlineAlert: isUrgent
-      ? 'Self-help evictions (lock-outs, utility shutoffs) are strictly unlawful without a formal judicial sheriff order.'
+      ? 'A short deadline or lockout concern may be present. Preserve the notice and get local legal-aid or court information promptly.'
       : undefined,
     emergencyHotlinesTriggered: isUrgent,
     recommendedNextModule: isUrgent ? 'EMERGENCY_HOTLINE' : 'DEMYSITIFIER',

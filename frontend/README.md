@@ -5,7 +5,6 @@ This directory contains the Vite + React single-page experience for JurisAccess 
 ## Screens
 - **`/`**: Emergency legal triage and issue intake.
 - **`/analyze`**: Document demystifier and predatory-clause scanner.
-- **`/rights`**: Tenant and worker rights navigator.
 - **`/aid`**: Free legal-aid and pro bono locator.
 - **`/action`**: Pro se demand-letter builder.
 

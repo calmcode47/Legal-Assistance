@@ -1,7 +1,7 @@
 # JurisAccess AI (LexisLoop) ⚖️
 ### Agentic AI for Civil Legal Assistance & Access to Justice (A2J)
 
-[![CI Test Suite](https://img.shields.io/badge/Tests-62%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
+[![CI Test Suite](https://img.shields.io/badge/Tests-65%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7%20Strict-3178C6.svg)](https://www.typescriptlang.org/)
 [![Backend](https://img.shields.io/badge/Backend-Render%20Web%20Service-46E3B7.svg)](https://render.com/)
 [![Frontend](https://img.shields.io/badge/Frontend-Vercel-000000.svg)](https://vercel.com/)
@@ -135,7 +135,7 @@ JurisAccess includes a comprehensive automated test suite powered by **Vitest**:
 npm test
 ```
 
-### Test Suite Results (100% Pass Rate Across 13 Test Suites / 62 Tests):
+### Test Suite Results (100% Pass Rate Across 14 Test Suites / 65 Tests):
 ```
  ✓ tests/injectionGuard.test.ts (5 tests)
      - Detects "ignore previous instructions" jailbreaks
@@ -195,21 +195,20 @@ npm test
      - apiStatus store / fetchWithTimeout cold-start shield
  ✓ frontend/tests/a11yAndContracts.test.ts (8 tests)
      - WCAG 2.1 AA contrast math (17.5:1 text, 5.32:1 buttons)
-     - Production SPA routes (/analyze, /rights, /aid, /action)
+     - Production SPA routes (/analyze, /aid, /action)
      - Skip link, main landmark, double-Escape crisis exit
 
-Test Files  13 passed (13)
-     Tests  62 passed (62)
+ Test Files  14 passed (14)
+     Tests  65 passed (65)
 ```
 
 ---
 
 ## 6. Resource Efficiency & Performance (Medium Impact)
 
-- **Deterministic Short-Circuiting:** 40% of standard queries (pro se letter formatting, statutory lookup tables, emergency hotline triggers) execute without invoking LLM tokens, reducing API latency and cost.
-- **In-Memory LRU Caching:** High-frequency statutory guidelines and clinic directory queries are cached with a 1-hour TTL (`< 20ms` latency).
-- **Concise Token Engineering:** Prompts are structured for dense information throughput and direct JSON serialization, decreasing token consumption by 35% compared to conversational chatbots.
-- **Sub-Second Execution:** Total pre-processing and safety scans execute in `< 15ms`.
+- **Deterministic short-circuiting:** Triage, clinic matching, and letter formatting do not invoke the LLM, limiting paid-model use to document analysis and critique.
+- **In-memory caching:** Repeated clinic directory searches use a one-hour TTL cache.
+- **Bounded model work:** A strict three-iteration limit, request timeouts, and a temporary provider circuit breaker prevent runaway latency and spend.
 
 ---
 
@@ -225,9 +224,8 @@ Test Files  13 passed (13)
 - **Stitch MCP Server Integration Ready:** Complete screen-by-screen specifications, UI component trees, and copy-paste ready Stitch prompts are provided in [`frontend.md`](frontend.md) for generating:
   1. `/` — Legal Emergency Triage & Issue Intake
   2. `/analyze` — Document Demystifier & Predatory Clause Scanner
-  3. `/rights` — Tenant & Worker Rights Navigator
-  4. `/aid` — Free Legal Aid & Pro Bono Locator
-  5. `/action` — Pro Se Demand Letter & Action Checklist Builder
+  3. `/aid` — Free Legal Aid & Pro Bono Locator
+  4. `/action` — Pro Se Demand Letter & Action Checklist Builder
 
 ---
 

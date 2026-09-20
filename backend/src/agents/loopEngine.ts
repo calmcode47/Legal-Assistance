@@ -171,7 +171,7 @@ export class LoopEngine {
         assertableRights: [],
         actionChecklist: [
           '1. Contact your local Legal Services Corporation (LSC) partner clinic for pro bono review.',
-          '2. Visit the Rights Navigator module for general non-document-specific civil rights.',
+          '2. Use the Document Demystifier for a new review when you have more document text.',
           '3. Retain complete physical and digital copies of all legal notices and summons.',
         ],
         disclaimer:
@@ -184,10 +184,9 @@ export class LoopEngine {
           'This document could not be verified to our accuracy standard after multiple review passes. ' +
           'We are not showing an unverified analysis. Please consult a licensed attorney or a free legal aid clinic.',
         generalEducationalInfo:
-          'General, non-document-specific educational information about this legal category is available ' +
-          'in the Rights Navigator and Legal Aid Locator modules.',
+          'General educational information is available through the Document Demystifier and Legal Aid Locator modules.',
         recommendedAction:
-          'Use the Legal Aid Locator to find a free clinic, or the Rights Navigator for general procedural information.',
+          'Use the Legal Aid Locator to find a clinic, or return to the Document Demystifier with more document text.',
       },
       recommendedClinics: clinics,
       executionTimeMs,

@@ -17,6 +17,8 @@ describe('JurisAccess REST API Endpoints', () => {
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('HEALTHY');
     expect(res.body.service).toBe('JurisAccess AI (LexisLoop)');
+    expect(res.headers['content-security-policy']).toContain("script-src 'self'");
+    expect(res.headers['x-frame-options']).toBe('DENY');
   });
 
   it('POST /api/triage should categorize legal problem and return 200', async () => {

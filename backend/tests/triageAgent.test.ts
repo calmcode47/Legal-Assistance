@@ -17,6 +17,12 @@ describe('TriageAgent', () => {
     expect(result.emergencyHotlinesTriggered).toBe(true);
   });
 
+  it('does not mistake the letters in “notice” for an ICE immigration signal', async () => {
+    const result = await TriageAgent.triage('My landlord sent a notice to pay overdue rent or leave the apartment.', 'CA');
+
+    expect(result.detectedDomain).toBe(LegalDomain.TENANCY_AND_HOUSING);
+  });
+
   it('should triage unpaid overtime dispute as Employment matter', async () => {
     const query = 'My employer has withheld overtime pay and unpaid wages for the last 3 months.';
     const result = await TriageAgent.triage(query, 'NY', '10001');

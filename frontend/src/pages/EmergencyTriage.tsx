@@ -11,7 +11,6 @@ export const EmergencyTriage: React.FC = () => {
   const [zipCode, setZipCode] = useState('90012');
   const [loading, setLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
   const [triageResult, setTriageResult] = useState<TriageResult | null>(null);
 
   const categories = [
@@ -189,7 +188,7 @@ export const EmergencyTriage: React.FC = () => {
               />
             </div>
 
-            {/* Action Bar: Voice, Upload, Sample, Submit */}
+            {/* Action Bar: Voice, Sample, Submit */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <button
@@ -204,29 +203,6 @@ export const EmergencyTriage: React.FC = () => {
                   <span>{isRecording ? 'Listening...' : 'Voice Input'}</span>
                 </button>
 
-                <label
-                  className="btn btn-outline"
-                  style={{ fontSize: '0.78rem', padding: '0.45rem 0.75rem', cursor: 'pointer', marginBottom: 0 }}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>upload_file</span>
-                  <span>{uploadedFileName ? 'Notice Attached' : 'Attach Notice'}</span>
-                  <input
-                    type="file"
-                    accept=".pdf,.txt,.docx,.png,.jpg"
-                    style={{ display: 'none' }}
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        setUploadedFileName(e.target.files[0].name);
-                        const reader = new FileReader();
-                        reader.onload = (re) => {
-                          const content = re.target?.result as string;
-                          if (content) setNarrative((prev) => `${prev}\n\n[Attached Notice]:\n${content.slice(0, 1000)}`);
-                        };
-                        reader.readAsText(e.target.files[0]);
-                      }
-                    }}
-                  />
-                </label>
               </div>
 
               <button
@@ -359,7 +335,7 @@ export const EmergencyTriage: React.FC = () => {
                       <span>CRITICAL DEFENSE HOTLINE TRIGGERED</span>
                     </div>
                     <p style={{ fontSize: '0.82rem', marginTop: '0.3rem', color: 'var(--on-surface)' }}>
-                      Self-help lockouts and utility cuts without a judicial writ violate state penal and civil codes. Call emergency legal defense immediately at <strong>1-800-555-LEGAL</strong> or dial <strong>2-1-1</strong>.
+                      A lockout or utility shutoff may require immediate help. Preserve the notice and contact local legal aid through <strong>2-1-1</strong> or <strong>LawHelp.org</strong>.
                     </p>
                   </div>
                 )}
@@ -411,9 +387,9 @@ export const EmergencyTriage: React.FC = () => {
                       type="button"
                       className={`btn ${triageResult.recommendedNextModule === 'RIGHTS_NAVIGATOR' ? 'btn-primary' : 'btn-outline'}`}
                       style={{ fontSize: '0.75rem' }}
-                      onClick={() => navigate('/rights')}
+                      onClick={() => navigate('/analyze')}
                     >
-                      Verify Statutory Rights
+                      Review Your Notice
                     </button>
                     <button
                       type="button"
@@ -460,8 +436,7 @@ export const EmergencyTriage: React.FC = () => {
               <h3 style={{ fontSize: '1rem' }}>Client Privacy & Zero Data Retention</h3>
             </div>
             <p style={{ fontSize: '0.82rem', color: 'var(--on-surface-variant)', lineHeight: 1.5 }}>
-              All names, phone numbers, addresses, and Social Security Numbers are automatically stripped before cognitive processing. 
-              Sessions are ephemeral and purged immediately upon exit.
+              Common identifiers such as phone numbers, email addresses, and Social Security numbers are redacted before model processing. Avoid entering information that is not needed for your question.
             </p>
           </div>
         </div>

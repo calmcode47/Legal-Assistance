@@ -13,6 +13,9 @@ import { rateLimiter } from './middleware/rateLimiter';
 import { errorHandler } from './middleware/errorHandler';
 
 export const app = express();
+// Render sits behind a reverse proxy. Trusting the nearest proxy lets the
+// rate limiter use the visitor address rather than a shared proxy address.
+app.set('trust proxy', 1);
 
 // Path to frontend assets (Vite React dist bundle)
 const distPath = path.resolve(__dirname, '../../frontend/dist');
@@ -27,11 +30,12 @@ app.use(
         styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         fontSrc: ["'self'", 'https://fonts.gstatic.com'],
         imgSrc: ["'self'", 'data:', 'https:'],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        connectSrc: ["'self'", 'http://localhost:*', 'https://*.onrender.com'],
+        scriptSrc: ["'self'"],
+        connectSrc: ["'self'"],
       },
     },
     crossOriginEmbedderPolicy: false,
+    frameguard: { action: 'deny' },
   })
 );
 

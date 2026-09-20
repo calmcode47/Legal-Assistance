@@ -17,6 +17,8 @@ const EnvSchema = z.object({
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
   LLM_PROVIDER: z.enum(['gemini', 'mock']).default('mock'),
+  LLM_TIMEOUT_MS: z.coerce.number().int().min(1000).max(30000).default(8000),
+  LLM_CIRCUIT_BREAKER_MS: z.coerce.number().int().min(1000).max(300000).default(60000),
   RATE_LIMIT_WINDOW_MS: z.string().transform((val) => parseInt(val, 10)).default('60000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().transform((val) => parseInt(val, 10)).default('60'),
   CORS_ORIGIN: z.string().default('http://localhost:5173'),

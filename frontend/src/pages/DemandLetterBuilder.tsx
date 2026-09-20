@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { generateProSeLetter, ProSeLetterData } from '../services/api';
 
 export const DemandLetterBuilder: React.FC = () => {
@@ -6,22 +6,28 @@ export const DemandLetterBuilder: React.FC = () => {
     'SECURITY_DEPOSIT_RETURN' | 'HABITABILITY_REPAIR_DEMAND' | 'UNPAID_WAGES_DEMAND' | 'FDCPA_DEBT_VALIDATION'
   >('SECURITY_DEPOSIT_RETURN');
 
-  const [senderName, setSenderName] = useState('Elena Gomez');
-  const [senderAddress, setSenderAddress] = useState('456 Oak St, Apt 2B, Los Angeles, CA 90012');
-  const [recipientName, setRecipientName] = useState('Apex Properties LLC');
-  const [recipientAddress, setRecipientAddress] = useState('789 Commercial Blvd, Los Angeles, CA 90017');
-  const [rentalAddress, setRentalAddress] = useState('123 Main St, Apt 4, Los Angeles, CA 90012');
-  const [disputedAmount, setDisputedAmount] = useState<number>(1850.0);
-  const [incidentDate, setIncidentDate] = useState('August 31, 2026');
+  const [senderName, setSenderName] = useState('');
+  const [senderAddress, setSenderAddress] = useState('');
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientAddress, setRecipientAddress] = useState('');
+  const [rentalAddress, setRentalAddress] = useState('');
+  const [disputedAmount, setDisputedAmount] = useState<number | undefined>();
+  const [incidentDate, setIncidentDate] = useState('');
   const [includeTrebleDamages, setIncludeTrebleDamages] = useState(true);
   const [additionalContext, setAdditionalContext] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [letterData, setLetterData] = useState<ProSeLetterData | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showMailInstructions, setShowMailInstructions] = useState(false);
 
   const loadLetter = async () => {
+    if (!senderName.trim() || !senderAddress.trim() || !recipientName.trim() || !recipientAddress.trim()) {
+      setFormError('Enter your name and address plus the recipient name and address before creating a preview.');
+      return;
+    }
+    setFormError(null);
     setLoading(true);
     try {
       const data = await generateProSeLetter({
@@ -41,10 +47,6 @@ export const DemandLetterBuilder: React.FC = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadLetter();
-  }, [templateType, includeTrebleDamages]);
 
   const handleCopyText = () => {
     if (!letterData) return;
@@ -170,7 +172,10 @@ export const DemandLetterBuilder: React.FC = () => {
                   type="button"
                   className={`btn ${templateType === t.id ? 'btn-dark' : 'btn-outline'}`}
                   style={{ justifyContent: 'flex-start', fontSize: '0.8rem', padding: '0.5rem 0.75rem' }}
-                  onClick={() => setTemplateType(t.id as any)}
+                  onClick={() => {
+                    setTemplateType(t.id as typeof templateType);
+                    setLetterData(null);
+                  }}
                 >
                   {t.label}
                 </button>
@@ -187,6 +192,8 @@ export const DemandLetterBuilder: React.FC = () => {
                 className="form-input"
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
+                autoComplete="name"
+                required
               />
             </div>
             <div className="form-group">
@@ -196,6 +203,7 @@ export const DemandLetterBuilder: React.FC = () => {
                 className="form-input"
                 value={recipientName}
                 onChange={(e) => setRecipientName(e.target.value)}
+                required
               />
             </div>
           </div>
@@ -207,6 +215,8 @@ export const DemandLetterBuilder: React.FC = () => {
               className="form-input"
               value={senderAddress}
               onChange={(e) => setSenderAddress(e.target.value)}
+              autoComplete="street-address"
+              required
             />
           </div>
 
@@ -217,6 +227,7 @@ export const DemandLetterBuilder: React.FC = () => {
               className="form-input"
               value={recipientAddress}
               onChange={(e) => setRecipientAddress(e.target.value)}
+              required
             />
           </div>
 
@@ -237,7 +248,7 @@ export const DemandLetterBuilder: React.FC = () => {
                 type="number"
                 className="form-input"
                 value={disputedAmount}
-                onChange={(e) => setDisputedAmount(Number(e.target.value))}
+                onChange={(e) => setDisputedAmount(e.target.value ? Number(e.target.value) : undefined)}
               />
             </div>
             <div className="form-group">
@@ -290,8 +301,9 @@ export const DemandLetterBuilder: React.FC = () => {
             disabled={loading}
             style={{ marginTop: '0.5rem' }}
           >
-            {loading ? 'Refreshing Document...' : 'Regenerate Document Preview'}
+            {loading ? 'Creating preview...' : 'Create private document preview'}
           </button>
+          {formError && <p role="alert" style={{ margin: 0, color: 'var(--emergency-text)', fontSize: '0.82rem' }}>{formError}</p>}
         </div>
 
         {/* Right Column: Formal Legal Document Paper Canvas */}
@@ -312,7 +324,7 @@ export const DemandLetterBuilder: React.FC = () => {
               </pre>
             ) : (
               <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--outline)' }}>
-                Generating formatted legal demand notice...
+                Complete the required fields, then create a private preview. Nothing is sent until you choose this action.
               </div>
             )}
           </div>

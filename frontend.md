@@ -38,9 +38,9 @@ Following an exhaustive analysis of the `website_design` folder, the frontend is
                              │
        ┌─────────────────────┼─────────────────────┬─────────────────────┐
        ▼                     ▼                     ▼                     ▼
-[ 1. / Triage ]      [ 2. /analyze ]        [ 3. /rights ]        [ 4. /aid ]        [ 5. /action ]
-Emergency Intake     Document Demystifier   Rights Navigator      Pro Bono Locator   Pro Se Letter Builder
-& Urgency Meter      & Clause Scanner       Interactive QA        & Clinic Map       & PDF/Text Export
+[ 1. / Triage ]      [ 2. /analyze ]        [ 3. /aid ]           [ 4. /action ]
+Emergency Intake     Document Demystifier   Pro Bono Locator      Pro Se Letter Builder
+& Urgency Meter      & Clause Scanner       & Clinic Map           & Text Export
 ```
 
 ---
@@ -102,10 +102,10 @@ Include a floating 'Closed-Loop Verification Badge' in the top right: 'Audited b
 
 ---
 
-### Screen 3: Tenant & Worker Rights Interactive Navigator (`/rights`)
+### Retired screen: Tenant & Worker Rights Interactive Navigator
 
 #### Purpose
-Guides users through an interactive decision tree to determine if their landlord, employer, or debt collector has violated statutory protections.
+This screen was intentionally removed from the production flow. Its static decision tree made overly broad legal claims; the verified document review and legal-aid workflows now cover the supported use cases.
 
 #### Key Features & Components
 1. **Guided Stepper:** Progressive 4-step wizard:

@@ -196,11 +196,11 @@ Dear ${req.recipientName},
 
 I am writing to formally demand the return of my security deposit in the amount of ${amountStr}, paid in connection with my tenancy at the above-referenced premises which terminated on ${req.incidentDate || '[Move-Out Date]'}.
 
-Under applicable state landlord-tenant law, a landlord must return the full security deposit along with an itemized statement of any lawful deductions within the statutory deadline (typically 14 to 30 days) following vacancy. To date, I have received neither my deposit nor an itemized accounting.
+Applicable state landlord-tenant law may require a landlord to return a deposit or provide an itemized statement of lawful deductions within a specified deadline. The applicable rule and deadline vary by jurisdiction. To date, I have received neither my deposit nor an itemized accounting.
 
 Please be advised that bad-faith retention of a tenant's security deposit may subject a landlord to statutory penalties, including double or treble damages plus court costs in Small Claims Court.
 
-Please remit a check for the full amount of ${amountStr} to my current address listed above within ten (10) calendar days of receipt of this notice. If I do not receive payment by that date, I reserve all rights to initiate legal proceedings without further notice.
+Please respond in writing within ten (10) calendar days of receipt of this notice. I reserve my rights and may seek information from a licensed attorney, legal-aid organization, or appropriate court about available options.
 
 Sincerely,
 
@@ -231,9 +231,9 @@ Please be advised that the following defective conditions exist at the above-ref
 
 ${req.additionalContext || '1. Inadequate heat/hot water.\n2. Plumbing leaks causing unsanitary moisture.\n3. Defective locking mechanisms on exterior entrance doors.'}
 
-Under statutory law and the Uniform Residential Landlord and Tenant Act, you have an affirmative legal duty to maintain the premises in a clean, safe, and habitable condition. 
+State and local law may require a housing provider to maintain premises in a safe and habitable condition. The applicable requirements and deadlines vary by jurisdiction.
 
-I request that you commence necessary repairs within fourteen (14) days (or within 24 hours for emergency utility failures). If these conditions are not remedied promptly, I reserve all lawful tenant remedies, including reporting these violations to the local municipal code enforcement agency and exercising statutory rights.
+I request a written response and a plan for necessary repairs. If these conditions are not remedied promptly, I may contact local code enforcement, legal aid, or a licensed attorney to understand available options.
 
 Sincerely,
 
@@ -263,9 +263,9 @@ This letter constitutes a formal demand for payment of unpaid compensation earne
 
 ${req.additionalContext || 'This includes unpaid standard hours and statutory overtime hours that have not been compensated.'}
 
-Under the Fair Labor Standards Act (FLSA, 29 U.S.C. § 201 et seq.) and state labor codes, employers who fail to pay earned wages upon the statutory deadline may be held liable for the principal wages plus statutory liquidated damages, interest, and attorney fees.
+The Fair Labor Standards Act (FLSA, 29 U.S.C. § 201 et seq.) and state labor laws may protect earned wages and overtime. Whether they apply depends on the worker’s role, hours, and jurisdiction.
 
-Please remit payment in full within seven (7) business days. Failure to do so will result in the immediate filing of a formal wage claim with the State Labor Commissioner / Department of Labor.
+Please respond in writing within seven (7) business days. If the issue remains unresolved, I may contact the State Labor Commissioner, Department of Labor, legal aid, or a licensed attorney for information about next steps.
 
 Sincerely,
 
@@ -300,7 +300,7 @@ I dispute the validity of this alleged debt in whole. Please provide formal veri
 3. Copy of the original written agreement bearing my signature;
 4. Proof that your agency is licensed to collect debts in my state.
 
-Until such validation is provided, you must cease all collection activities against me. All future communications must be conducted exclusively in writing via mail.
+Please confirm in writing how you will handle this dispute request. I request that future communications be in writing by mail. I may contact a consumer legal-aid organization or licensed attorney to understand the deadlines and protections that apply.
 
 Sincerely,
 

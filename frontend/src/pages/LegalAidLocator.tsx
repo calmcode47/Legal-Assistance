@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { matchLegalAid, LegalAidData, ClinicItem, LegalDomain, LegalDomainType } from '../services/api';
+import React, { useState } from 'react';
+import { matchLegalAid, LegalAidData, LegalDomain, LegalDomainType } from '../services/api';
 
 export const LegalAidLocator: React.FC = () => {
   const [zipCode, setZipCode] = useState('90012');
@@ -7,10 +7,8 @@ export const LegalAidLocator: React.FC = () => {
   const [domainFilter, setDomainFilter] = useState<string>('ALL');
   const [income, setIncome] = useState(24000);
   const [householdSize, setHouseholdSize] = useState(3);
-  const [userSituation, setUserSituation] = useState('');
   const [loading, setLoading] = useState(false);
   const [legalAidData, setLegalAidData] = useState<LegalAidData | null>(null);
-  const [referralSentFor, setReferralSentFor] = useState<string | null>(null);
 
   const fetchClinics = async () => {
     setLoading(true);
@@ -21,7 +19,6 @@ export const LegalAidLocator: React.FC = () => {
         domain: domainFilter === 'ALL' ? undefined : (domainFilter as LegalDomainType),
         annualHouseholdIncome: income,
         householdSize,
-        userSituation: userSituation.trim() || undefined,
       });
       setLegalAidData(data);
     } finally {
@@ -29,20 +26,9 @@ export const LegalAidLocator: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchClinics();
-  }, [stateCode, domainFilter]);
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     fetchClinics();
-  };
-
-  const handleReferral = (clinic: ClinicItem) => {
-    setReferralSentFor(clinic.name);
-    setTimeout(() => {
-      setReferralSentFor(null);
-    }, 4000);
   };
 
   const checklist = legalAidData?.intakeChecklist;
@@ -144,16 +130,9 @@ export const LegalAidLocator: React.FC = () => {
         </div>
 
         <div style={{ marginTop: '1rem', borderTop: '1px solid var(--outline-faint)', paddingTop: '0.75rem' }}>
-          <label className="form-label" style={{ marginBottom: '0.3rem' }}>
-            Optional: Describe Your Specific Dispute (Generates AI-tailored intake advice)
-          </label>
-          <input
-            type="text"
-            className="form-input"
-            value={userSituation}
-            onChange={(e) => setUserSituation(e.target.value)}
-            placeholder="e.g. Received a 3-day notice to quit for withholding rent due to severe plumbing leaks..."
-          />
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--on-surface-variant)' }}>
+            This directory provides general referrals. Confirm current eligibility, intake hours, and representation availability directly with each organization.
+          </p>
         </div>
       </form>
 
@@ -176,32 +155,20 @@ export const LegalAidLocator: React.FC = () => {
               <div>
                 <strong style={{ fontSize: '1rem', color: legalAidData.isEligibleForFreeLegalAid ? 'var(--verified-text)' : 'var(--caution-text)' }}>
                   {legalAidData.isEligibleForFreeLegalAid
-                    ? 'You Appear Eligible for 100% Free Legal Representation!'
-                    : 'Income Above Standard LSC 200% FPL Cap — Low-Bono & Sliding-Scale Still Available'}
+                    ? 'You may meet this directory’s income-screening estimate'
+                    : 'Income may be above this directory’s screening estimate'}
                 </strong>
                 <p style={{ fontSize: '0.85rem', color: 'var(--on-surface)', marginTop: '0.2rem' }}>
                   Your estimated household income is approximately <strong>{legalAidData.estimatedFplPercentage}%</strong> of the Federal Poverty Guideline. 
-                  LSC-funded clinics represent qualifying households with zero out-of-pocket costs.
+                  This is an estimate only. Each organization makes its own eligibility and representation decision.
                 </p>
               </div>
             </div>
 
             <div className="badge badge-green">
-              <span>LSC Statutorily Verified</span>
+              <span>Eligibility estimate</span>
             </div>
           </div>
-        </div>
-      )}
-
-      {referralSentFor && (
-        <div className="legal-card-well" style={{ backgroundColor: 'var(--verified-bg)', borderLeft: '4px solid var(--verified-green)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--verified-text)', fontWeight: 700, fontSize: '0.85rem' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
-            <span>Intake Referral Package Prepared for {referralSentFor}</span>
-          </div>
-          <p style={{ fontSize: '0.82rem', marginTop: '0.25rem', color: 'var(--on-surface)' }}>
-            Client intake docket generated with encrypted PII redaction. Present this file upon arrival or provide your reference number during phone intake.
-          </p>
         </div>
       )}
 
@@ -278,15 +245,6 @@ export const LegalAidLocator: React.FC = () => {
                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>open_in_new</span>
                   <span>Online Intake Portal</span>
                 </a>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  style={{ fontSize: '0.75rem', padding: '0.45rem 0.85rem' }}
-                  onClick={() => handleReferral(clinic)}
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
-                  <span>Prepare Referral Pack</span>
-                </button>
               </div>
             </div>
           ))}

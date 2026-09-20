@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { checkHealth, HealthStatus } from '../services/api';
+import { HealthStatus } from '../services/api';
 import { initBackendActivator } from '../services/backendActivator';
 import { StatusBanner } from './StatusBanner';
 
@@ -9,8 +9,7 @@ export const Layout: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    checkHealth().then(setHealth);
-    const cleanup = initBackendActivator();
+    const cleanup = initBackendActivator(setHealth);
     return cleanup;
   }, []);
 
@@ -116,7 +115,6 @@ export const Layout: React.FC = () => {
               {[
                 { to: '/', label: 'Emergency Triage' },
                 { to: '/analyze', label: 'Document Demystifier' },
-                { to: '/rights', label: 'Rights Navigator' },
                 { to: '/aid', label: 'Legal Aid Locator' },
                 { to: '/action', label: 'Demand Letter Builder' },
               ].map((item) => (
@@ -147,7 +145,7 @@ export const Layout: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div className="badge badge-green" style={{ padding: '0.35rem 0.65rem' }}>
               <span className="live-dot" aria-hidden="true"></span>
-              <span>Zero-Trace Redaction Active</span>
+              <span>PII Redaction Active</span>
             </div>
           </div>
         </div>
@@ -177,7 +175,7 @@ export const Layout: React.FC = () => {
             <span aria-hidden="true">•</span>
             <span>Focus jurisdictions: CA / NY / TX + federal FDCPA/FLSA</span>
             <span aria-hidden="true">•</span>
-            <span style={{ color: 'var(--verified-green)' }}>Zero Data Retention Active</span>
+            <span style={{ color: 'var(--verified-green)' }}>PII redacted before analysis</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--verified-green)' }}>
             <span className="live-dot" aria-hidden="true"></span>
@@ -219,7 +217,6 @@ export const Layout: React.FC = () => {
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
                   <li><NavLink to="/" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Emergency Triage</NavLink></li>
                   <li><NavLink to="/analyze" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Document Demystifier</NavLink></li>
-                  <li><NavLink to="/rights" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Rights Navigator</NavLink></li>
                   <li><NavLink to="/aid" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Legal Aid Locator</NavLink></li>
                   <li><NavLink to="/action" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Demand Letter Builder</NavLink></li>
                 </ul>
