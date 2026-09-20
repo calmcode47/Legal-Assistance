@@ -7,7 +7,7 @@ import { TriageController } from '../controllers/triageController';
 import { AnalysisController } from '../controllers/analysisController';
 import { AidController } from '../controllers/aidController';
 import { LoopController } from '../controllers/loopController';
-import { validateBody } from '../middleware/validation';
+import { requireJson, validateBody } from '../middleware/validation';
 import {
   TriageRequestSchema,
   AnalysisRequestSchema,
@@ -29,18 +29,18 @@ router.get('/health', (_req, res) => {
 });
 
 // 1. Legal Issue Triage & Urgency Evaluation
-router.post('/triage', validateBody(TriageRequestSchema), TriageController.handleTriage);
+router.post('/triage', requireJson, validateBody(TriageRequestSchema), TriageController.handleTriage);
 
 // 2. Document Analysis & Clause Demystifier
-router.post('/analyze-contract', validateBody(AnalysisRequestSchema), AnalysisController.handleAnalysis);
+router.post('/analyze-contract', requireJson, validateBody(AnalysisRequestSchema), AnalysisController.handleAnalysis);
 
 // 3. Pro Bono Legal Aid Matcher
-router.post('/match-aid', validateBody(LegalAidRequestSchema), AidController.handleMatchAid);
+router.post('/match-aid', requireJson, validateBody(LegalAidRequestSchema), AidController.handleMatchAid);
 
 // 4. Pro Se Legal Demand Notice Generator
-router.post('/pro-se-letter', validateBody(ProSeLetterRequestSchema), AidController.handleProSeLetter);
+router.post('/pro-se-letter', requireJson, validateBody(ProSeLetterRequestSchema), AidController.handleProSeLetter);
 
 // 5. Complete Closed-Loop Cognitive Pipeline
-router.post('/loop-execute', validateBody(LoopExecutionRequestSchema), LoopController.handleExecute);
+router.post('/loop-execute', requireJson, validateBody(LoopExecutionRequestSchema), LoopController.handleExecute);
 
 export default router;

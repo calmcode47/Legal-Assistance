@@ -5,13 +5,10 @@
 
 import { fetchWithTimeout } from './fetchWithTimeout';
 import { setApiStatus } from './apiStatus';
-import {
-  offlineAnalyze,
-  offlineCognitiveLoop,
-  offlineMatchAid,
-  offlineProSeLetter,
-  offlineTriage,
-} from './offlineFallbacks';
+
+// The substantial offline educational catalogue is deliberately split from the
+// first-load bundle. It is fetched only if the live service is unreachable.
+const loadOfflineFallbacks = () => import('./offlineFallbacks');
 
 export const LegalDomain = {
   TENANCY_AND_HOUSING: 'TENANCY_AND_HOUSING',
@@ -271,7 +268,7 @@ export async function triageIssue(payload: TriageRequest): Promise<TriageResult>
         statutoryDeadlineAlert: d.statutoryDeadlineAlert,
         emergencyHotlinesTriggered: Boolean(d.emergencyHotlinesTriggered),
         recommendedNextModule: normalizeModule(d.recommendedNextModule),
-        nextSteps: d.nextSteps || offlineTriage(payload).nextSteps,
+        nextSteps: d.nextSteps || [],
         disclaimer:
           d.disclaimer ||
           'JurisAccess AI is an automated educational tool designed to assist self-represented litigants. It does not provide formal legal counsel or create an attorney-client relationship.',
@@ -281,6 +278,7 @@ export async function triageIssue(payload: TriageRequest): Promise<TriageResult>
     console.warn('Backend unavailable, using offline educational triage simulation:', err);
   }
   setApiStatus('offline');
+  const { offlineTriage } = await loadOfflineFallbacks();
   return offlineTriage(payload);
 }
 
@@ -300,6 +298,7 @@ export async function analyzeContract(payload: AnalysisRequest): Promise<Explain
     console.warn('Backend unavailable, using offline educational explainer simulation:', err);
   }
   setApiStatus('offline');
+  const { offlineAnalyze } = await loadOfflineFallbacks();
   return offlineAnalyze(payload);
 }
 
@@ -324,6 +323,7 @@ export async function executeCognitiveLoop(payload: LoopRequest): Promise<LoopEx
   }
   setApiStatus('offline');
   // Pure local fallback — no chained network retries
+  const { offlineCognitiveLoop } = await loadOfflineFallbacks();
   return offlineCognitiveLoop(payload);
 }
 
@@ -372,7 +372,7 @@ export async function matchLegalAid(payload: LegalAidRequest): Promise<LegalAidD
                 rawChecklist.urgencyNote ||
                 'Contact the clinic as early as possible during walk-in morning hours.',
             }
-          : offlineMatchAid(payload).intakeChecklist;
+          : (await loadOfflineFallbacks()).offlineMatchAid(payload).intakeChecklist;
 
       return {
         zipCode: payload.zipCode,
@@ -387,6 +387,7 @@ export async function matchLegalAid(payload: LegalAidRequest): Promise<LegalAidD
     console.warn('Backend unavailable, using offline legal aid directory:', err);
   }
   setApiStatus('offline');
+  const { offlineMatchAid } = await loadOfflineFallbacks();
   return offlineMatchAid(payload);
 }
 
@@ -416,6 +417,7 @@ export async function generateProSeLetter(payload: ProSeLetterRequest): Promise<
     const json = await res.json();
     if (json.success && json.data && json.data.letterText) {
       setApiStatus('live');
+      const { offlineProSeLetter } = await loadOfflineFallbacks();
       const offlineMeta = offlineProSeLetter(payload);
       return {
         templateType: payload.templateType,
@@ -429,5 +431,6 @@ export async function generateProSeLetter(payload: ProSeLetterRequest): Promise<
     console.warn('Backend unavailable, generating offline educational demand letter:', err);
   }
   setApiStatus('offline');
+  const { offlineProSeLetter } = await loadOfflineFallbacks();
   return offlineProSeLetter({ ...payload, additionalContext });
 }

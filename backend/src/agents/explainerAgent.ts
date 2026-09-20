@@ -7,6 +7,7 @@ import { ExplainerDraft } from '../types/agent';
 import { LLMService } from '../services/llmService';
 import { EXPLAINER_SYSTEM_INSTRUCTION, buildExplainerPrompt } from '../prompts/explainerPrompts';
 import { UPLGuard } from '../guardrails/uplGuard';
+import { InjectionGuard } from '../guardrails/injectionGuard';
 
 export class ExplainerAgent {
   /**
@@ -19,7 +20,8 @@ export class ExplainerAgent {
     iteration: number;
     criticFeedback?: string[];
   }): Promise<ExplainerDraft> {
-    const prompt = buildExplainerPrompt(params);
+    const canary = InjectionGuard.generateCanary();
+    const prompt = buildExplainerPrompt({ ...params, canary });
 
     const rawResponse = await LLMService.generate(prompt, {
       systemInstruction: EXPLAINER_SYSTEM_INSTRUCTION,
@@ -27,6 +29,9 @@ export class ExplainerAgent {
     });
 
     try {
+      if (!InjectionGuard.verifyCanaryIntegrity(rawResponse, canary)) {
+        throw new Error('Model response failed integrity-token check.');
+      }
       const cleaned = rawResponse.replace(/```json\s*|```/g, '').trim();
       const parsed = JSON.parse(cleaned) as ExplainerDraft;
 
@@ -81,4 +86,3 @@ export async function generateDraft(params: {
     criticFeedback: params.criticFeedback,
   });
 }
-

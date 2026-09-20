@@ -49,6 +49,11 @@ app.use(
 
 app.use(express.json({ limit: '2mb' }));
 app.use(rateLimiter);
+app.use('/api', (_req, res, next) => {
+  // Legal narratives and generated letters must never be stored by shared caches.
+  res.set({ 'Cache-Control': 'no-store', Pragma: 'no-cache', 'X-Robots-Tag': 'noindex' });
+  next();
+});
 
 // 1. API Routes
 app.use('/api', apiRoutes);

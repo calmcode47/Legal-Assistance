@@ -1,7 +1,7 @@
 # JurisAccess AI (LexisLoop) ⚖️
 ### Agentic AI for Civil Legal Assistance & Access to Justice (A2J)
 
-[![CI Test Suite](https://img.shields.io/badge/Tests-66%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
+[![CI Test Suite](https://img.shields.io/badge/Tests-69%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7%20Strict-3178C6.svg)](https://www.typescriptlang.org/)
 [![Backend](https://img.shields.io/badge/Backend-Render%20Web%20Service-46E3B7.svg)](https://render.com/)
 [![Frontend](https://img.shields.io/badge/Frontend-Vercel-000000.svg)](https://vercel.com/)
@@ -84,7 +84,7 @@ Legal-Assistance/
 │   │   ├── services/              # LLM service (Gemini/Mock), Legal Aid directory, Cache
 │   │   ├── routes/                # Express API routes
 │   │   └── server.ts              # Express application listening on dynamic PORT
-│   ├── tests/                     # 41 automated Vitest tests (100% passing)
+│   ├── tests/                     # 45 automated Vitest tests (100% passing)
 │   ├── package.json               # Pure backend dependencies
 │   ├── tsconfig.json              # Strict TypeScript configuration
 │   └── README.md                  # Dedicated backend architecture guide
@@ -130,7 +130,7 @@ Legal-Assistance/
 | **Canary Token Leak Detection** | Random cryptographic canary tokens injected into prompts; audited post-generation. | Detects and aborts prompt extraction and system prompt leakage attacks. |
 | **UPL & Ethical Safeguards** | `UPLGuard.ts` detects prescriptive legal phrasing and injects mandatory ABA educational disclaimers. | Prevents Unauthorized Practice of Law; clarifies non-attorney educational scope. |
 | **Anti-Hallucination Filter** | `CitationValidator.ts` validates citations against statutory ground truths (URLTA, FDCPA, State Codes). | Eliminates fabricated case citations and placeholder hallucinations (`[citation needed]`). |
-| **Transport Hardening** | Helmet CSP, exact-origin CORS (no `*`), 2 MB body limit, sliding-window rate limit with IP map pruning. | Blocks XSS framing, cross-origin abuse, oversized payloads, and free-tier memory leaks. |
+| **Transport Hardening** | Helmet CSP, exact-origin CORS (no `*`), JSON-only strict schemas, `no-store` API responses, 2 MB body limit, and separate analysis-capacity rate limiting. | Blocks XSS framing, cross-origin abuse, cache retention, malformed payloads, and free-tier exhaustion. |
 
 ---
 
@@ -142,9 +142,9 @@ JurisAccess includes a comprehensive automated test suite powered by **Vitest**:
 npm test
 ```
 
-### Test Suite Results (100% Pass Rate Across 14 Test Suites / 66 Tests):
+### Test Suite Results (100% Pass Rate Across 14 Test Suites / 69 Tests):
 ```
- ✓ tests/injectionGuard.test.ts (5 tests)
+ ✓ tests/injectionGuard.test.ts (6 tests)
      - Detects "ignore previous instructions" jailbreaks
      - Detects DAN mode jailbreaks
      - Detects system prompt extraction attempts
@@ -186,7 +186,7 @@ npm test
  ✓ tests/loopEngine.test.ts (2 tests)
      - Full 5-stage loop execution with convergence >= 95%
      - Rejection of prompt injections at Stage 1 before LLM inference
- ✓ tests/api.test.ts (9 tests)
+ ✓ tests/api.test.ts (12 tests)
      - GET /api/health (200 OK)
      - POST /api/triage (200 OK with classification & urgency)
      - POST /api/triage validation rejection (400 Bad Request)
@@ -206,7 +206,7 @@ npm test
      - Skip link, main landmark, double-Escape crisis exit
 
  Test Files  14 passed (14)
-     Tests  65 passed (65)
+     Tests  69 passed (69)
 ```
 
 ---
@@ -216,6 +216,7 @@ npm test
 - **Deterministic short-circuiting:** Triage, clinic matching, and letter formatting do not invoke the LLM, limiting paid-model use to document analysis and critique.
 - **In-memory caching:** Repeated clinic directory searches use a one-hour TTL cache.
 - **Bounded model work:** A strict three-iteration limit, request timeouts, and a temporary provider circuit breaker prevent runaway latency and spend.
+- **Lean first load:** The 15.7 kB offline-simulation catalogue is code-split and loads only after a live request fails; the primary JavaScript bundle is 270.7 kB (82.1 kB gzip).
 
 ---
 
@@ -358,7 +359,7 @@ cd Legal-Assistance
 npm ci --prefix backend
 npm ci --prefix frontend
 
-# 3. Run automated test suite (65+ passing across 14 test suites)
+# 3. Run automated test suite (69 passing across 14 test suites)
 npm test
 
 # 4. Start local development servers

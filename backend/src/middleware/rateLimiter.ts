@@ -12,7 +12,10 @@ interface RateLimitRecord {
 }
 
 const ipRequestMap: Map<string, RateLimitRecord> = new Map();
+const llmRequestMap: Map<string, RateLimitRecord> = new Map();
 const MAX_TRACKED_IPS = 5000;
+const MAX_LLM_REQUESTS_PER_WINDOW = 8;
+const LLM_REQUEST_PATHS = new Set(['/api/analyze-contract', '/api/loop-execute']);
 
 function pruneExpired(now: number): void {
   if (ipRequestMap.size < MAX_TRACKED_IPS / 2) {
@@ -34,6 +37,28 @@ function pruneExpired(now: number): void {
       ipRequestMap.delete(next.value);
     }
   }
+  for (const [ip, record] of llmRequestMap) {
+    if (now > record.resetTime) {
+      llmRequestMap.delete(ip);
+    }
+  }
+}
+
+function exceedsLimit(
+  records: Map<string, RateLimitRecord>,
+  key: string,
+  now: number,
+  windowMs: number,
+  maxRequests: number
+): number | null {
+  const record = records.get(key);
+  if (!record || now > record.resetTime) {
+    records.set(key, { count: 1, resetTime: now + windowMs });
+    return null;
+  }
+
+  record.count++;
+  return record.count > maxRequests ? Math.max(1, Math.ceil((record.resetTime - now) / 1000)) : null;
 }
 
 export function rateLimiter(
@@ -52,18 +77,8 @@ export function rateLimiter(
 
   pruneExpired(now);
 
-  let record = ipRequestMap.get(clientIp);
-
-  if (!record || now > record.resetTime) {
-    record = { count: 1, resetTime: now + windowMs };
-    ipRequestMap.set(clientIp, record);
-    return next();
-  }
-
-  record.count++;
-
-  if (record.count > maxRequests) {
-    const retryAfterSeconds = Math.max(1, Math.ceil((record.resetTime - now) / 1000));
+  const retryAfterSeconds = exceedsLimit(ipRequestMap, clientIp, now, windowMs, maxRequests);
+  if (retryAfterSeconds) {
     res.set('Retry-After', retryAfterSeconds.toString());
     res.status(429).json({
       success: false,
@@ -74,6 +89,22 @@ export function rateLimiter(
       },
     });
     return;
+  }
+
+  if (LLM_REQUEST_PATHS.has(req.path)) {
+    const llmRetryAfter = exceedsLimit(llmRequestMap, clientIp, now, windowMs, MAX_LLM_REQUESTS_PER_WINDOW);
+    if (llmRetryAfter) {
+      res.set('Retry-After', llmRetryAfter.toString());
+      res.status(429).json({
+        success: false,
+        error: {
+          code: 'LLM_RATE_LIMIT_EXCEEDED',
+          message: 'Analysis capacity is temporarily limited. Please wait before requesting another analysis.',
+          timestamp: new Date().toISOString(),
+        },
+      });
+      return;
+    }
   }
 
   return next();

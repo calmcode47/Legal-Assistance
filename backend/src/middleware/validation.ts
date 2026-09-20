@@ -19,7 +19,6 @@ export function validateBody<T>(schema: ZodSchema<T>) {
         error: {
           code: 'VALIDATION_ERROR',
           message: `Request validation failed: ${issues}`,
-          details: error.format(),
           timestamp: new Date().toISOString(),
         },
       });
@@ -29,4 +28,21 @@ export function validateBody<T>(schema: ZodSchema<T>) {
     req.body = result.data;
     next();
   };
+}
+
+/** Require structured JSON for state-changing API requests. */
+export function requireJson(req: Request, res: Response<ApiResponse<never>>, next: NextFunction): void {
+  if (req.is('application/json')) {
+    next();
+    return;
+  }
+
+  res.status(415).json({
+    success: false,
+    error: {
+      code: 'UNSUPPORTED_MEDIA_TYPE',
+      message: 'Content-Type must be application/json.',
+      timestamp: new Date().toISOString(),
+    },
+  });
 }

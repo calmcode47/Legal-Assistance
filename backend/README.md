@@ -15,7 +15,7 @@ This directory contains the production-grade Node.js / TypeScript backend servic
 # Install dependencies exactly as locked
 npm ci
 
-# Run automated tests (41/41 passed)
+# Run automated tests (46/46 passed)
 npm test
 
 # Build TypeScript

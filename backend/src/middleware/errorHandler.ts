@@ -12,8 +12,9 @@ export function errorHandler(
   res: Response<ApiResponse<never>>,
   _next: NextFunction
 ): void {
-  const statusCode = err.status || 500;
-  const errorCode = err.code || (statusCode === 400 ? 'VALIDATION_ERROR' : 'INTERNAL_SERVER_ERROR');
+  const isMalformedJson = err instanceof SyntaxError && 'body' in err;
+  const statusCode = isMalformedJson ? 400 : err.status || 500;
+  const errorCode = isMalformedJson ? 'INVALID_JSON' : err.code || (statusCode === 400 ? 'VALIDATION_ERROR' : 'INTERNAL_SERVER_ERROR');
 
   console.error(`[JurisAccess Error] ${errorCode} (${statusCode}):`, err.message);
 
@@ -26,6 +27,8 @@ export function errorHandler(
       message:
         statusCode >= 500
           ? 'An unexpected error occurred while processing your legal inquiry.'
+          : isMalformedJson
+            ? 'The request body must contain valid JSON.'
           : err.message || 'Your request could not be processed.',
       timestamp: new Date().toISOString(),
     },

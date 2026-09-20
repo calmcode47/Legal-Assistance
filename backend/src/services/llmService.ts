@@ -49,7 +49,9 @@ export class LLMService {
         systemInstruction: options?.systemInstruction,
         generationConfig: {
           temperature: options?.temperature ?? 0.2,
-          maxOutputTokens: options?.maxOutputTokens ?? 2048,
+          // Legal outputs are deliberately concise; this protects free-tier
+          // quota and keeps the critic/generator loop responsive.
+          maxOutputTokens: options?.maxOutputTokens ?? 1200,
           responseMimeType: 'application/json',
         },
       });

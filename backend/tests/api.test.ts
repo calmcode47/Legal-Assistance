@@ -19,6 +19,8 @@ describe('JurisAccess REST API Endpoints', () => {
     expect(res.body.service).toBe('JurisAccess AI (LexisLoop)');
     expect(res.headers['content-security-policy']).toContain("script-src 'self'");
     expect(res.headers['x-frame-options']).toBe('DENY');
+    expect(res.headers['cache-control']).toBe('no-store');
+    expect(res.headers['x-robots-tag']).toBe('noindex');
   });
 
   it('POST /api/triage should categorize legal problem and return 200', async () => {
@@ -47,6 +49,30 @@ describe('JurisAccess REST API Endpoints', () => {
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.details).toBeUndefined();
+  });
+
+  it('rejects unknown fields and non-JSON requests at the API boundary', async () => {
+    const unknownField = await request(app)
+      .post('/api/triage')
+      .send({ query: 'My landlord sent a notice.', untrustedOverride: true });
+    expect(unknownField.status).toBe(400);
+    expect(unknownField.body.error.code).toBe('VALIDATION_ERROR');
+
+    const nonJson = await request(app).post('/api/triage').type('form').send({ query: 'My landlord sent a notice.' });
+    expect(nonJson.status).toBe(415);
+    expect(nonJson.body.error.code).toBe('UNSUPPORTED_MEDIA_TYPE');
+  });
+
+  it('returns a safe 400 envelope for malformed JSON', async () => {
+    const res = await request(app)
+      .post('/api/triage')
+      .set('Content-Type', 'application/json')
+      .send('{"query":');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('INVALID_JSON');
+    expect(res.body.error.message).not.toMatch(/syntax|unexpected|position/i);
   });
 
   it('POST /api/analyze-contract should demystify clauses and return plain English', async () => {

@@ -19,6 +19,9 @@ const ADVERSARIAL_PATTERNS = [
   /\bbypass\s+(all\s+)?(legal\s+disclaimers|safety\s+filters)\b/i,
   /\bact\s+as\s+an\s+unrestricted\s+ai\b/i,
   /\bdeveloper\s+mode\s+enabled\b/i,
+  /\b(override|forget)\s+(all\s+)?(previous|prior|system)\s+(instructions|rules)\b/i,
+  /\b(exfiltrate|leak)\s+(the\s+)?(prompt|instructions|secret|api\s*key)\b/i,
+  /\bdo\s+not\s+follow\s+(the\s+)?(rules|guardrails|policy)\b/i,
 ];
 
 export class InjectionGuard {
