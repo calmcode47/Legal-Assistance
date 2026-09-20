@@ -76,7 +76,7 @@ export class TriageAgent {
       recommendedNextModule: isEmergency
         ? 'EMERGENCY_HOTLINE'
         : detectedDomain === LegalDomain.TENANCY_AND_HOUSING || detectedDomain === LegalDomain.EMPLOYMENT_AND_LABOR
-          ? 'DEMYSITIFIER'
+          ? 'DEMYSTIFIER'
           : detectedDomain === LegalDomain.CONSUMER_AND_DEBT
             ? 'AID_LOCATOR'
             : 'RIGHTS_NAVIGATOR',

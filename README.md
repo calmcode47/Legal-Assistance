@@ -1,7 +1,7 @@
 # JurisAccess AI (LexisLoop) ⚖️
 ### Agentic AI for Civil Legal Assistance & Access to Justice (A2J)
 
-[![CI Test Suite](https://img.shields.io/badge/Tests-65%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
+[![CI Test Suite](https://img.shields.io/badge/Tests-66%20Passed%20(100%25)-10B981.svg)](#5-testing--functional-validation)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7%20Strict-3178C6.svg)](https://www.typescriptlang.org/)
 [![Backend](https://img.shields.io/badge/Backend-Render%20Web%20Service-46E3B7.svg)](https://render.com/)
 [![Frontend](https://img.shields.io/badge/Frontend-Vercel-000000.svg)](https://vercel.com/)
@@ -16,7 +16,8 @@
 
 - **Competition:** PromptWars — Exclusive Edition (Hack2Skill)
 - **Problem Statement:** AI for Legal Assistance and Access
-- **Chosen Vertical:** **Civil Legal Assistance & Access to Justice (A2J)**
+- **Chosen Vertical:** **Civil Legal Assistance & Access to Justice (A2J)** — housing, wages, and consumer debt only (not criminal defense)
+- **Core Modules (5):** Emergency Triage → Rights Navigator → Document Demystifier → Legal Aid Locator → Demand Letter Builder
 - **Deployment Architecture:** **Vercel** (Frontend Edge SPA) + **Render Web Service** (Backend Node.js API)
 - **Target Users:** Self-represented litigants (pro se), low-and-middle-income tenants, gig workers, debt-harassed consumers, and legal aid intake coordinators.
 
@@ -90,10 +91,11 @@ Legal-Assistance/
 │
 ├── frontend/                      # React + Vite SPA (Vercel)
 │   ├── src/
-│   │   ├── pages/                 # Emergency Triage, Demystifier, Rights, Aid, Demand Letter
+│   │   ├── pages/                 # Triage, Rights Navigator, Demystifier, Aid, Demand Letter
 │   │   ├── components/            # Layout, StatusBanner (skip link + WCAG landmarks)
-│   │   └── services/              # API client, offline fallbacks, timeout shield
-│   ├── tests/                     # 21 automated Vitest tests (API + a11y contracts)
+│   │   └── services/              # API client, offline fallbacks, Backend Activator Bot
+│   ├── tests/                     # Frontend Vitest suites (API + a11y + activator)
+│   ├── docs/                      # Design system tokens (DESIGN.md)
 │   ├── public/                    # Static assets & public icons
 │   ├── vercel.json                # Vercel SPA routing & security headers configuration
 │   ├── vite.config.ts             # Vite configuration with API proxy
@@ -107,6 +109,11 @@ Legal-Assistance/
 └── phases.md                      # Phased Implementation Roadmap
 ```
 
+### Efficiency Notes
+- Design mockup PNGs removed from the repository (keeps GitHub disk usage well under the 10 MB limit).
+- Offline educational simulations live in `offlineFallbacks.ts` and never chain failed network retries.
+- Backend Activator Bot uses credit-conscious keepalive (single health ping every 10 minutes while the tab is visible).
+- Deterministic triage/matcher/letter paths skip LLM calls when keywords are sufficient.
 ### Code Standards
 - **Strict TypeScript:** `noImplicitAny`, `strictNullChecks`, and `noUnusedLocals` enabled across backend and frontend packages.
 - **Zod on HTTP boundaries:** All incoming API request bodies are validated with Zod schemas (`backend/src/types/api.ts`).
@@ -118,12 +125,12 @@ Legal-Assistance/
 
 | Security Control | Implementation Detail | Target Defense |
 | :--- | :--- | :--- |
-| **Two-Way PII Sanitization** | `PIIScrubber.ts` strips SSNs, credit cards, emails, phone numbers, and addresses before inference. | Zero sensitive citizen PII transmitted to third-party LLM providers. |
+| **Two-Way PII Sanitization** | `PIIScrubber.ts` strips SSNs, Aadhaar, DOB, credit cards, emails, phone numbers, and addresses before inference. | Zero sensitive citizen PII transmitted to third-party LLM providers. |
 | **Prompt Injection Sandboxing** | `InjectionGuard.ts` fences user inputs inside `<litigant_document_content>` XML tags and scans for 10+ adversarial patterns. | Neutralizes DAN jailbreaks, "ignore previous instructions", and developer mode exploits. |
 | **Canary Token Leak Detection** | Random cryptographic canary tokens injected into prompts; audited post-generation. | Detects and aborts prompt extraction and system prompt leakage attacks. |
 | **UPL & Ethical Safeguards** | `UPLGuard.ts` detects prescriptive legal phrasing and injects mandatory ABA educational disclaimers. | Prevents Unauthorized Practice of Law; clarifies non-attorney educational scope. |
 | **Anti-Hallucination Filter** | `CitationValidator.ts` validates citations against statutory ground truths (URLTA, FDCPA, State Codes). | Eliminates fabricated case citations and placeholder hallucinations (`[citation needed]`). |
-| **Zero-Trust Firestore Rules** | `firestore.rules` enforces authenticated session boundaries and denies unauthenticated writes. | Prevents unauthorized database mutations. |
+| **Transport Hardening** | Helmet CSP, exact-origin CORS (no `*`), 2 MB body limit, sliding-window rate limit with IP map pruning. | Blocks XSS framing, cross-origin abuse, oversized payloads, and free-tier memory leaks. |
 
 ---
 
@@ -135,7 +142,7 @@ JurisAccess includes a comprehensive automated test suite powered by **Vitest**:
 npm test
 ```
 
-### Test Suite Results (100% Pass Rate Across 14 Test Suites / 65 Tests):
+### Test Suite Results (100% Pass Rate Across 14 Test Suites / 66 Tests):
 ```
  ✓ tests/injectionGuard.test.ts (5 tests)
      - Detects "ignore previous instructions" jailbreaks
@@ -321,9 +328,21 @@ Content-Type: application/json
 ## 10. Repository Hygiene & Submission Compliance
 
 - **Single Branch:** Strictly developed and maintained on `main`.
-- **Repository Footprint:** GitHub reports ≈ **3 MB** of tracked content (well under the 10 MB limit; design mockup PNGs included).
+- **Repository Footprint:** Tracked content is kept lean (**well under 10 MB**) by excluding design mockup binaries and build artifacts.
 - **Public Visibility:** Repository must remain **public** on GitHub for evaluation.
 - **Zero Bloat:** Build outputs (`dist/`), dependencies (`node_modules/`), and environment files (`.env`) are strictly excluded via `.gitignore`.
+
+---
+
+## Live Deployment (Submission Links)
+
+| Surface | URL |
+| :--- | :--- |
+| **Frontend (submit this)** | https://jurisaccess-frontend.vercel.app |
+| **Backend API** | https://jurisaccess-backend.onrender.com |
+| **Health Check** | https://jurisaccess-backend.onrender.com/api/health |
+
+The frontend includes an automatic **Backend Activator Bot** that wakes the Render service on first visit so cold starts do not block evaluation.
 
 ---
 
@@ -339,7 +358,7 @@ cd Legal-Assistance
 npm ci --prefix backend
 npm ci --prefix frontend
 
-# 3. Run automated test suite (62/62 passing across 13 test suites)
+# 3. Run automated test suite (65+ passing across 14 test suites)
 npm test
 
 # 4. Start local development servers

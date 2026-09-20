@@ -1,11 +1,8 @@
 /**
  * JurisAccess AI - Backend Activator Bot
- * 
- * Automatically wakes up and keeps the Render backend service warm.
- * Handles Render free-tier cold starts (sleeping after 15m inactivity)
- * by immediately detecting sleep, retrying in the background, updating
- * UI status, and maintaining a gentle keepalive ping while the user
- * is active.
+ *
+ * Wakes Render free-tier backend on page load and keeps it warm with
+ * credit-conscious keepalive pings (Render sleeps after ~15m inactivity).
  */
 
 import { setApiStatus } from './apiStatus';
@@ -14,14 +11,31 @@ import { checkHealth, HealthStatus } from './api';
 let isActivating = false;
 let keepaliveInterval: ReturnType<typeof setInterval> | null = null;
 let pollTimeout: ReturnType<typeof setTimeout> | null = null;
+let lastSuccessfulPing = 0;
 
-// Keepalive heartbeat every 9.5 minutes (Render sleeps after 15 minutes of inactivity)
-const KEEPALIVE_INTERVAL_MS = 9.5 * 60 * 1000;
-const RETRY_POLL_INTERVAL_MS = 3500;
-const MAX_ACTIVATION_ATTEMPTS = 20; // Up to ~70 seconds (well above typical 30-50s Render cold start)
+// Keepalive every 10 minutes — enough to prevent 15m sleep, conserves free-tier credits
+const KEEPALIVE_INTERVAL_MS = 10 * 60 * 1000;
+const RETRY_POLL_INTERVAL_MS = 4000;
+const MAX_ACTIVATION_ATTEMPTS = 12; // ~48s covers typical Render cold starts
+const FOCUS_REWAKE_COOLDOWN_MS = 60_000;
 
 export function isLiveBackend(health: HealthStatus): boolean {
   return health.status === 'HEALTHY';
+}
+
+async function pingOnce(onHealth?: (health: HealthStatus) => void): Promise<boolean> {
+  try {
+    const health = await checkHealth();
+    onHealth?.(health);
+    if (isLiveBackend(health)) {
+      setApiStatus('live');
+      lastSuccessfulPing = Date.now();
+      return true;
+    }
+  } catch {
+    // still starting
+  }
+  return false;
 }
 
 /**
@@ -35,16 +49,10 @@ export async function wakeBackend(onHealth?: (health: HealthStatus) => void): Pr
 
   async function poll(): Promise<boolean> {
     attempts++;
-    try {
-      const health = await checkHealth();
-      onHealth?.(health);
-      if (isLiveBackend(health)) {
-        setApiStatus('live');
-        isActivating = false;
-        return true;
-      }
-    } catch {
-      // still starting up
+    const live = await pingOnce(onHealth);
+    if (live) {
+      isActivating = false;
+      return true;
     }
 
     if (attempts < MAX_ACTIVATION_ATTEMPTS) {
@@ -54,47 +62,50 @@ export async function wakeBackend(onHealth?: (health: HealthStatus) => void): Pr
           resolve(await poll());
         }, RETRY_POLL_INTERVAL_MS);
       });
-    } else {
-      setApiStatus('offline');
-      isActivating = false;
-      return false;
     }
+
+    setApiStatus('offline');
+    isActivating = false;
+    return false;
   }
 
   return await poll();
 }
 
 /**
- * Initializes the Backend Activator Bot:
- * - Triggers immediate wakeup on page load
- * - Listens for window focus / visibility change to re-verify or wake backend
- * - Sets a gentle keepalive heartbeat so backend stays alive while user is browsing
+ * Lightweight keepalive — single health ping, no multi-attempt storm.
+ */
+async function keepalivePing(onHealth?: (health: HealthStatus) => void): Promise<void> {
+  if (isActivating) return;
+  const live = await pingOnce(onHealth);
+  if (!live) {
+    void wakeBackend(onHealth);
+  }
+}
+
+/**
+ * Initializes the Backend Activator Bot.
  */
 export function initBackendActivator(onHealth?: (health: HealthStatus) => void): () => void {
-  // 1. Initial wakeup check
   void wakeBackend(onHealth);
 
-  // 2. Keepalive ping
   if (!keepaliveInterval) {
     keepaliveInterval = setInterval(() => {
-      // Send lightweight ping if tab is open
       if (document.visibilityState === 'visible') {
-        void wakeBackend(onHealth);
+        void keepalivePing(onHealth);
       }
     }, KEEPALIVE_INTERVAL_MS);
   }
 
-  // 3. User returns to tab -> ensure backend is awake
   const handleVisibilityChange = () => {
-    if (document.visibilityState === 'visible') {
-      void wakeBackend(onHealth);
-    }
+    if (document.visibilityState !== 'visible') return;
+    const sinceLast = Date.now() - lastSuccessfulPing;
+    if (sinceLast < FOCUS_REWAKE_COOLDOWN_MS) return;
+    void wakeBackend(onHealth);
   };
 
-  window.addEventListener('visibilitychange', handleVisibilityChange);
-  window.addEventListener('focus', handleVisibilityChange);
+  document.addEventListener('visibilitychange', handleVisibilityChange);
 
-  // Return cleanup function
   return () => {
     if (keepaliveInterval) {
       clearInterval(keepaliveInterval);
@@ -104,8 +115,7 @@ export function initBackendActivator(onHealth?: (health: HealthStatus) => void):
       clearTimeout(pollTimeout);
       pollTimeout = null;
     }
-    window.removeEventListener('visibilitychange', handleVisibilityChange);
-    window.removeEventListener('focus', handleVisibilityChange);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
     isActivating = false;
   };
 }

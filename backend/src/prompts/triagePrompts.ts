@@ -51,7 +51,7 @@ Respond with strict JSON in this format:
   "urgencyReasoning": "string explanation",
   "statutoryDeadlineAlert": "string warning if applicable",
   "emergencyHotlinesTriggered": boolean,
-  "recommendedNextModule": "DEMYSITIFIER" | "RIGHTS_NAVIGATOR" | "AID_LOCATOR" | "EMERGENCY_HOTLINE"
+  "recommendedNextModule": "DEMYSTIFIER" | "RIGHTS_NAVIGATOR" | "AID_LOCATOR" | "EMERGENCY_HOTLINE"
 }
 `.trim();
 }

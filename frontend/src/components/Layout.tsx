@@ -113,10 +113,11 @@ export const Layout: React.FC = () => {
 
             <nav style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }} aria-label="Main Navigation">
               {[
-                { to: '/', label: 'Emergency Triage' },
-                { to: '/analyze', label: 'Document Demystifier' },
-                { to: '/aid', label: 'Legal Aid Locator' },
-                { to: '/action', label: 'Demand Letter Builder' },
+                { to: '/', label: 'Triage' },
+                { to: '/rights', label: 'Rights' },
+                { to: '/analyze', label: 'Analyze' },
+                { to: '/aid', label: 'Find Aid' },
+                { to: '/action', label: 'Demand Letter' },
               ].map((item) => (
                 <NavLink
                   key={item.to}
@@ -179,7 +180,13 @@ export const Layout: React.FC = () => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--verified-green)' }}>
             <span className="live-dot" aria-hidden="true"></span>
-            <span>{health?.status === 'HEALTHY' ? 'AI Engine Live' : 'Encrypted Sandbox'}</span>
+            <span>
+              {health?.status === 'HEALTHY'
+                ? 'AI Engine Live'
+                : health
+                  ? 'Offline educational mode'
+                  : 'Activator bot connecting…'}
+            </span>
           </div>
         </div>
       </header>
@@ -216,6 +223,7 @@ export const Layout: React.FC = () => {
                 <h4 style={{ color: '#ffffff', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.75rem' }}>Modules</h4>
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.85rem' }}>
                   <li><NavLink to="/" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Emergency Triage</NavLink></li>
+                  <li><NavLink to="/rights" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Rights Navigator</NavLink></li>
                   <li><NavLink to="/analyze" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Document Demystifier</NavLink></li>
                   <li><NavLink to="/aid" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Legal Aid Locator</NavLink></li>
                   <li><NavLink to="/action" style={{ color: '#c8c5d0', textDecoration: 'none' }}>Demand Letter Builder</NavLink></li>

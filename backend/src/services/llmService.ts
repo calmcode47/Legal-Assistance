@@ -143,7 +143,7 @@ export class LLMService {
         urgencyReasoning: `Detected urgent civil dispute keywords indicating ${domain}.`,
         statutoryDeadlineAlert: alert,
         emergencyHotlinesTriggered: urgency === 'CRITICAL',
-        recommendedNextModule: urgency === 'CRITICAL' ? 'EMERGENCY_HOTLINE' : 'DEMYSITIFIER',
+        recommendedNextModule: urgency === 'CRITICAL' ? 'EMERGENCY_HOTLINE' : 'DEMYSTIFIER',
       });
     }
 

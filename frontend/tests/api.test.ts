@@ -86,7 +86,7 @@ describe('Frontend API Service Layer', () => {
         urgencyLevel: UrgencyLevel.MEDIUM,
         urgencyReasoning: 'FDCPA debt dispute.',
         emergencyHotlinesTriggered: false,
-        recommendedNextModule: 'DEMYSITIFIER',
+        recommendedNextModule: 'DEMYSTIFIER',
         nextSteps: ['Send debt validation letter'],
         disclaimer: 'Educational only.',
       };

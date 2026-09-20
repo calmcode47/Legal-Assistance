@@ -44,6 +44,21 @@ describe('PIIScrubber (Two-Way Redaction & Re-hydration)', () => {
     expect(restored).toBe(raw);
   });
 
+  it('should redact Aadhaar numbers and dates of birth', () => {
+    const raw =
+      'Applicant Aadhaar 2345 6789 0123 and DOB 03/15/1990 applied for housing assistance.';
+    const { sanitizedText, tokenMap, detectedCount } = PIIScrubber.sanitize(raw);
+
+    expect(sanitizedText).not.toContain('2345 6789 0123');
+    expect(sanitizedText).not.toContain('03/15/1990');
+    expect(sanitizedText).toContain('{{PII_AADHAAR_1}}');
+    expect(sanitizedText).toContain('{{PII_DOB_1}}');
+    expect(detectedCount).toBeGreaterThanOrEqual(2);
+
+    const restored = PIIScrubber.detokenize(sanitizedText, tokenMap);
+    expect(restored).toBe(raw);
+  });
+
   it('should return identical text if no PII is present', () => {
     const raw = 'This notice demands payment of past due rent under the Uniform Residential Landlord and Tenant Act.';
     const { sanitizedText, detectedCount } = PIIScrubber.sanitize(raw);

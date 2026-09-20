@@ -26,6 +26,7 @@ JurisAccess AI provides accessible, hallucination-resistant, and privacy-preserv
 | `REQ-003` | Closed-loop Generator-Critic self-correction engine with >=95% convergence threshold. | User Request | `VERIFIED` | `src/agents/loopEngine.ts` | `REQ-001`, `REQ-002` | `tests/loopEngine.test.ts` | Active |
 | `REQ-004` | LSC-compliant legal aid and pro bono directory matcher by ZIP/income. | Brief & PRD | `VERIFIED` | `src/agents/matcherAgent.ts` | `REQ-001` | `tests/api.test.ts` | Active |
 | `REQ-005` | Formal Pro Se legal demand notice and letter generation engine. | Brief & PRD | `VERIFIED` | `src/services/legalAidService.ts` | `REQ-002` | `tests/api.test.ts` | Active |
+| `REQ-006` | Interactive Rights Navigator with domain-scoped statutory checklists. | Brief & PRD | `VERIFIED` | `frontend/src/pages/RightsNavigator.tsx` | `REQ-001` | `tests/a11yAndContracts.test.ts` | Active |
 
 ### Security & Compliance Requirements (`SEC-###`)
 
@@ -35,7 +36,8 @@ JurisAccess AI provides accessible, hallucination-resistant, and privacy-preserv
 | `SEC-002` | Prompt injection defense with XML delimiter fencing and canary token detection. | Rubric & PRD | `VERIFIED` | `src/guardrails/injectionGuard.ts` | None | `tests/injectionGuard.test.ts` | Active |
 | `SEC-003` | Unauthorized Practice of Law (UPL) guardrail and dynamic educational disclaimer. | Legal Ethics | `VERIFIED` | `src/guardrails/uplGuard.ts` | None | `tests/loopEngine.test.ts` | Active |
 | `SEC-004` | Anti-hallucination citation verification against statutory ground truth. | Legal Ethics | `VERIFIED` | `src/guardrails/citationValidator.ts`| `REQ-003` | `tests/loopEngine.test.ts` | Active |
-| `SEC-005` | Zero-trust Firebase Firestore security rules forbidding unauthenticated writes. | Rubric | `VERIFIED` | `firestore.rules` | None | Static inspection | Active |
+| `SEC-005` | Transport hardening: Helmet CSP, exact-origin CORS, body limits, rate-limit IP pruning. | Rubric | `VERIFIED` | `src/server.ts` + `rateLimiter.ts` | None | `tests/api.test.ts` | Active |
+| `SEC-006` | Extended PII coverage for Aadhaar and date-of-birth patterns. | PRD | `VERIFIED` | `src/guardrails/piiScrubber.ts` | `SEC-001` | `tests/piiScrubber.test.ts` | Active |
 
 ### Architectural Decisions (`DEC-###`)
 

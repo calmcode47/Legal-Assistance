@@ -21,8 +21,8 @@
     "promptwars",
     "pii-redaction",
     "upl-guardrail",
-    "render-web-service",
-    "cloudflare-pages"
+    "vercel",
+    "render-web-service"
   ],
   "author": "JurisAccess Team",
   "license": "Apache-2.0",

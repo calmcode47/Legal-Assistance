@@ -377,7 +377,7 @@ export const EmergencyTriage: React.FC = () => {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <button
                       type="button"
-                      className={`btn ${triageResult.recommendedNextModule === 'DEMYSITIFIER' ? 'btn-primary' : 'btn-dark'}`}
+                      className={`btn ${triageResult.recommendedNextModule === 'DEMYSTIFIER' ? 'btn-primary' : 'btn-dark'}`}
                       style={{ fontSize: '0.75rem' }}
                       onClick={() => navigate('/analyze')}
                     >
@@ -387,9 +387,9 @@ export const EmergencyTriage: React.FC = () => {
                       type="button"
                       className={`btn ${triageResult.recommendedNextModule === 'RIGHTS_NAVIGATOR' ? 'btn-primary' : 'btn-outline'}`}
                       style={{ fontSize: '0.75rem' }}
-                      onClick={() => navigate('/analyze')}
+                      onClick={() => navigate('/rights')}
                     >
-                      Review Your Notice
+                      Review Your Rights
                     </button>
                     <button
                       type="button"

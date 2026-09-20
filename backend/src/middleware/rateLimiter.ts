@@ -12,13 +12,35 @@ interface RateLimitRecord {
 }
 
 const ipRequestMap: Map<string, RateLimitRecord> = new Map();
+const MAX_TRACKED_IPS = 5000;
+
+function pruneExpired(now: number): void {
+  if (ipRequestMap.size < MAX_TRACKED_IPS / 2) {
+    // Cheap path: occasional full prune when map grows
+    return;
+  }
+  for (const [ip, record] of ipRequestMap) {
+    if (now > record.resetTime) {
+      ipRequestMap.delete(ip);
+    }
+  }
+  // Hard cap to protect free-tier memory
+  if (ipRequestMap.size > MAX_TRACKED_IPS) {
+    const overflow = ipRequestMap.size - MAX_TRACKED_IPS;
+    const keys = ipRequestMap.keys();
+    for (let i = 0; i < overflow; i++) {
+      const next = keys.next();
+      if (next.done) break;
+      ipRequestMap.delete(next.value);
+    }
+  }
+}
 
 export function rateLimiter(
   req: Request,
   res: Response<ApiResponse<never>>,
   next: NextFunction
 ): void {
-  // Bypass in test environment for continuous automated testing
   if (env.NODE_ENV === 'test') {
     return next();
   }
@@ -27,6 +49,8 @@ export function rateLimiter(
   const now = Date.now();
   const windowMs = env.RATE_LIMIT_WINDOW_MS;
   const maxRequests = env.RATE_LIMIT_MAX_REQUESTS;
+
+  pruneExpired(now);
 
   let record = ipRequestMap.get(clientIp);
 

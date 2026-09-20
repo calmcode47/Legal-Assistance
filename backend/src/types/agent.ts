@@ -21,7 +21,7 @@ export interface TriageResult {
   urgencyReasoning: string;
   statutoryDeadlineAlert?: string;
   emergencyHotlinesTriggered: boolean;
-  recommendedNextModule: 'DEMYSITIFIER' | 'RIGHTS_NAVIGATOR' | 'AID_LOCATOR' | 'EMERGENCY_HOTLINE';
+  recommendedNextModule: 'DEMYSTIFIER' | 'RIGHTS_NAVIGATOR' | 'AID_LOCATOR' | 'EMERGENCY_HOTLINE';
 }
 
 export interface ExplainerDraft {

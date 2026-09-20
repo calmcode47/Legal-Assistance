@@ -24,7 +24,7 @@ export const StatusBanner: React.FC = () => {
       <div role="status" className="status-banner status-banner--activating">
         <span className="material-symbols-outlined status-banner-icon rotating">smart_toy</span>
         <span>
-          <strong>Backend Activator Bot:</strong> Waking up JurisAccess Cloud Service (Render cold-start spinup)... Connecting live AI automatically in a few seconds.
+          <strong>Backend Activator Bot active:</strong> Waking JurisAccess Cloud API (Render free-tier cold start). Live AI connects automatically — usually under a minute. Educational offline mode remains available meanwhile.
         </span>
       </div>
     );

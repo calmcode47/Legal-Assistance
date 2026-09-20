@@ -5,6 +5,7 @@ import { EmergencyTriage } from './pages/EmergencyTriage';
 import { DocumentDemystifier } from './pages/DocumentDemystifier';
 import { LegalAidLocator } from './pages/LegalAidLocator';
 import { DemandLetterBuilder } from './pages/DemandLetterBuilder';
+import { RightsNavigator } from './pages/RightsNavigator';
 
 export const App: React.FC = () => {
   return (
@@ -12,10 +13,11 @@ export const App: React.FC = () => {
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<EmergencyTriage />} />
-          <Route path="/triage" element={<EmergencyTriage />} />
+          <Route path="/rights" element={<RightsNavigator />} />
           <Route path="/analyze" element={<DocumentDemystifier />} />
           <Route path="/aid" element={<LegalAidLocator />} />
           <Route path="/action" element={<DemandLetterBuilder />} />
+          <Route path="/triage" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
